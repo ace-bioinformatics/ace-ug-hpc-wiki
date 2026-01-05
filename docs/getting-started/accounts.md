@@ -37,8 +37,12 @@ Users are required to study these materials thoroughly. Once completed, they sho
 ### Complete the Linux and SLURM Quiz
 After confirming completion of the training materials, users will receive a quiz to test their knowledge of Linux and SLURM. The quiz has a pass mark of 14 out of 15. If a user does not achieve the required score, they will be asked to review the materials again and retake the quiz until they pass.
 
+[Take the Linux & SLURM Quiz](https://forms.gle/Z1EyaeNkJoUE2Pfs5)
+
 ### Review and Sign the ACE HPC Policy
 Upon passing the quiz, users will receive the ACE HPC Policy document, which outlines the rules and expectations for using the cluster. Users must read the policy carefully, paying special attention to the acknowledgment section, and adhere to its guidelines. A signed copy of the policy must be returned to the support team via email.
+
+[Download the document](/files/document.pdf)
 
 The support team will maintain a folder to store all signed copies of the policy for record-keeping. Users are encouraged to keep a copy of the policy for their reference.
 
