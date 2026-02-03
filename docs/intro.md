@@ -41,7 +41,7 @@ Learn how to [access the system](getting-started/connecting) via SSH from Linux,
 Follow our [quickstart guide](getting-started/first-job) to run your first computational job using Slurm.
 
 ### Explore Resources
-Review our [hardware specifications](hardware/overview) and available [software packages](software/available-software).
+Review our [hardware specifications](hardware/overview) and available [software packages](software/installed).
 
 </div>
 
@@ -54,9 +54,9 @@ Review our [hardware specifications](hardware/overview) and available [software 
 
 ## Need Help?
 
-- **Documentation Issues?** Browse our [FAQ](support/faq) or [troubleshooting guides](support/troubleshooting)
+- **Documentation Issues?** Browse our [FAQ](support/faq) or [troubleshooting guides](support/contact)
 - **Technical Support**:  Email support@ace-bioinformatics.org
-- **Training**: Check our [tutorial library](tutorials/)
+- **Training**: Check our [tutorial library](tutorials/intro)
 
 
 **Ready to begin?** [Create your account →](getting-started/accounts)
