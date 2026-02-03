@@ -124,7 +124,45 @@ const sidebars = {
           label: 'Contact'
         }
       ]
-    }
+    },
+    {
+      type: 'category',
+      label: 'Tutorials',
+      items: [
+        {
+          type: 'doc',
+          id: 'tutorials/overview',
+          label: 'Tutorials Overview'
+        },
+        {
+          type: 'category',
+          label: 'Containers',
+          collapsed: true,
+          items: [
+            {
+              type: 'doc',
+              id: 'tutorials/containers/intro',
+              label: 'Welcome to Containers @ ACE!'
+            },
+            {
+              type: 'doc',
+              id: 'tutorials/containers/containerize-code',
+              label: 'Containerize Your Code'
+            },
+            {
+              type: 'doc',
+              id: 'tutorials/containers/containers-hpc',
+              label: 'Containers on HPC Clusters'
+            },
+            {
+              type: 'doc',
+              id: 'tutorials/containers/advanced-builds',
+              label: 'Advanced Build Topics'
+            }
+          ]
+        }
+      ]
+    },
   ],
 };
 
