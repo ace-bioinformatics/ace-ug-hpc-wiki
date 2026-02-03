@@ -56,7 +56,7 @@ Review our [hardware specifications](hardware/overview) and available [software 
 
 - **Documentation Issues?** Browse our [FAQ](support/faq) or [troubleshooting guides](support/contact)
 - **Technical Support**:  Email support@ace-bioinformatics.org
-- **Training**: Check our [tutorial library](tutorials/intro)
+- **Training**: Check our [tutorial library](tutorials/overview)
 
 
 **Ready to begin?** [Create your account →](getting-started/accounts)
