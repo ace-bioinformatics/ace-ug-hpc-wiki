@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkace_wiki=self.webpackChunkace_wiki||[]).push([[8018],{6490:e=>{e.exports=JSON.parse('{"metadata":{"permalink":"/ace-ug-hpc-wiki/blog","page":1,"postsPerPage":10,"totalPages":1,"totalCount":4,"blogDescription":"Blog","blogTitle":"Blog"}}')}}]);
