@@ -55,15 +55,8 @@ Review our [hardware specifications](hardware/overview) and available [software 
 ## Need Help?
 
 - **Documentation Issues?** Browse our [FAQ](support/faq) or [troubleshooting guides](support/troubleshooting)
-- **Technical Support**: [Submit a support ticket](support/contact) or email hpc-support@ace.ac.ug
-- **Training**: Check our [upcoming workshops](training/workshops) and [tutorial library](tutorials/overview)
+- **Technical Support**:  Email support@ace-bioinformatics.org
+- **Training**: Check our [tutorial library](tutorials/)
 
-## Acknowledgments
-
-When publishing research that used ACE HPC resources, please include this acknowledgment:
-
-> *"Computational analysis was performed using the High Performance Computing cluster at the African Centre of Excellence in Bioinformatics and Data Intensive Sciences (ACE), Makerere University, Uganda."*
-
----
 
 **Ready to begin?** [Create your account →](getting-started/accounts)
