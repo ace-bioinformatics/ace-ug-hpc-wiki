@@ -142,24 +142,24 @@ Here's the typical workflow for using containers on the ACE HPC:
 
 This tutorial series is organized into four main sections:
 
-### 1. Welcome to Containers @ ACE!
+### Welcome to Containers @ ACE!
 Introduction to container concepts and the ACE HPC container ecosystem.
 
-### 2. [Containerize Your Code](containerize-code)
+### [Containerize Your Code](containerize-code)
 Learn to create your own containers:
 - Writing Dockerfiles
 - Building images
 - Working with registries
 - Your first containerized application
 
-### 3. [Containers on HPC Clusters](containers-hpc)
+### [Containers on HPC Clusters](containers-hpc)
 Run containers on ACE HPC:
 - Using Apptainer
 - SLURM job scripts for containers
 - Data management and bind mounts
 - Performance considerations
 
-### 4. [Advanced Build Topics](advanced-builds)
+### [Advanced Build Topics](advanced-builds)
 Master advanced container techniques:
 - Multi-stage builds for smaller images
 - GPU-enabled containers
