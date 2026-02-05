@@ -29,6 +29,7 @@ Each of the nodes is a Dell PowerEdge C6320p, a high density, 2U rack server des
 | Model                   | 87                                    |
 | Thread(s) per core      | 4                                     |
 | Core(s) per socket      | 68                                     |
+| Memory                  | 96 GB                                  |
 | Socket(s)               | 1                                     |
 | Stepping                | 1                                     |
 

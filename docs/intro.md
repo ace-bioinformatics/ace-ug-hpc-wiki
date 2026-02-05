@@ -12,10 +12,13 @@ The African Centre of Excellence in Bioinformatics and Data Intensive Sciences (
 
 High-Performance Computing (HPC) enables researchers to tackle computational problems that would be impossible or impractical on standard computers. Our cluster provides:
 
-- **Parallel Processing**: Run hundreds of calculations simultaneously
-- **Large Memory**: Analyze datasets that exceed typical computer limits
-- **Specialized Hardware**: Access GPUs and high-core-count processors optimized for scientific computing
-- **Persistent Storage**: Store and share large research datasets securely
+**Parallel Processing**: Run hundreds of calculations simultaneously
+
+**Large Memory**: Analyze datasets that exceed typical computer limits
+
+**Specialized Hardware**: Access GPUs and high-core-count processors optimized for scientific computing
+
+**Persistent Storage**: Store and share large research datasets securely
 
 ## Who Should Use ACE HPC?
 
@@ -38,7 +41,7 @@ New to ACE HPC? Start by [requesting an account](getting-started/accounts). Proc
 Learn how to [access the system](getting-started/connecting) via SSH from Linux, macOS, or Windows.
 
 ### Submit Your First Job
-Follow our [quickstart guide](getting-started/first-job) to run your first computational job using Slurm.
+Follow our [Slurm Tutorial](tutorials/running-jobs/slurm-basics.md) to run your first computational job using Slurm.
 
 ### Explore Resources
 Review our [hardware specifications](hardware/overview) and available [software packages](software/installed).

@@ -39,11 +39,6 @@ const sidebars = {
           id: 'getting-started/connecting',
           label: 'Connecting to the Cluster', // Overrides "connecting"
         },
-        {
-          type: 'doc',
-          id: 'getting-started/first-job',
-          label: 'Submitting Your First Job', // Overrides "first-job"
-        },
       ],
     },
     {
@@ -64,27 +59,32 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Running Jobs', // Displays as "Running Jobs" instead of "running-jobs"
+      label: 'Good Conduct',
       items: [
         {
           type: 'doc',
-          id: 'running-jobs/slurm-basics',
-          label: 'SLURM Basics', // Overrides "slurm-basics"
+          id: 'good-conduct/overview',
+          label: 'Overview',
         },
         {
           type: 'doc',
-          id: 'running-jobs/job-scripts',
-          label: 'Writing Job Scripts', // Overrides "job-scripts"
+          id: 'good-conduct/login-nodes',
+          label: 'Login Node Guidelines',
         },
         {
           type: 'doc',
-          id: 'running-jobs/sample-scripts',
-          label: 'Sample SLURM Job Scripts'
+          id: 'good-conduct/file-system',
+          label: 'File System Practices',
         },
         {
           type: 'doc',
-          id: 'running-jobs/troubleshooting',
-          label: 'Troubleshooting Jobs', // Overrides "troubleshooting"
+          id: 'good-conduct/job-submission',
+          label: 'Job Submission Tips',
+        },
+        {
+          type: 'doc',
+          id: 'good-conduct/file-transfers',
+          label: 'File Transfer Guide',
         },
       ],
     },
@@ -135,6 +135,33 @@ const sidebars = {
           label: 'Tutorials Overview'
         },
         {
+        type: 'category',
+        label: 'Running Slurm Jobs', // Displays as "Running Slurm Jobs" instead of "running-jobs"
+        collapsed: true,
+        items: [
+        {
+          type: 'doc',
+          id: 'tutorials/running-jobs/slurm-basics',
+          label: 'SLURM Basics', // Overrides "slurm-basics"
+        },
+        {
+          type: 'doc',
+          id: 'tutorials/running-jobs/job-scripts',
+          label: 'Writing Job Scripts', // Overrides "job-scripts"
+        },
+        {
+          type: 'doc',
+          id: 'tutorials/running-jobs/sample-scripts',
+          label: 'Sample SLURM Job Scripts'
+        },
+        {
+          type: 'doc',
+          id: 'tutorials/running-jobs/troubleshooting',
+          label: 'Troubleshooting Jobs', // Overrides "troubleshooting"
+        },
+        ],
+        },
+        {
           type: 'category',
           label: 'Containers',
           collapsed: true,
@@ -160,7 +187,7 @@ const sidebars = {
               label: 'Advanced Build Topics'
             }
           ]
-        }
+        },
       ]
     },
   ],
