@@ -8,7 +8,7 @@ const FeatureList = [
     Svg: require('@site/static/img/speedometer-svgrepo-com.svg').default, 
     description: (
       <>
-        Learn how to access the ACE HPC cluster, connect via SSH, and submit your first job in minutes. Check out our <a href="/docs/getting-started/accounts">step-by-step guide</a>.
+        Learn how to access the ACE HPC cluster, connect via SSH, and submit your first job in minutes. Check out our <a href="/ace-ug-hpc-wiki/docs/getting-started/accounts">step-by-step guide</a>.
       </>
     ),
   },
@@ -17,7 +17,7 @@ const FeatureList = [
     Svg: require('@site/static/img/settings-gear-svgrepo-com.svg').default,
     description: (
       <>
-        Leverage our high-performance nodes, GPUs, and vast storage for your bioinformatics workflows. Explore the <a href="/docs/hardware/overview">cluster specs</a>.
+        Leverage our high-performance nodes, GPUs, and vast storage for your bioinformatics workflows. Explore the <a href="/ace-ug-hpc-wiki/docs/hardware/overview">cluster specs</a>.
       </>
     ),
   },
@@ -26,7 +26,7 @@ const FeatureList = [
     Svg: require('@site/static/img/analytics-computer-svgrepo-com.svg').default,
     description: (
       <>
-        Use pre-installed tools like BLAST and R, or install your own software to process genomic data efficiently. See the <a href="/docs/software/installed">software list</a>.
+        Use pre-installed tools like BLAST and R, or install your own software to process genomic data efficiently. See the <a href="/ace-ug-hpc-wiki/docs/software/installed">software list</a>.
       </>
     ),
   },
