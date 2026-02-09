@@ -25,6 +25,10 @@ const config = {
   organizationName: 'ace-bioinformatics', // Usually your GitHub org/user name.
   projectName: 'ace-hpc-wiki', // Usually your repo name.
 
+   customFields: {
+    USE_SSH: true,
+  },
+
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
 
