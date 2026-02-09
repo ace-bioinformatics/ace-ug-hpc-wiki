@@ -134,12 +134,12 @@ const config = {
             items: [
               {
                 label: 'GitHub',
-                href: 'https://github.com/facebook/docusaurus',
+                href: 'https://github.com/ace-bioinformatics',
               },
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} ACE WIKI, ACE - Uganda. Wasukira Ian.`,
+        copyright: `Copyright © ${new Date().getFullYear()} ACE WIKI, ACE - Uganda.`,
       },
       prism: {
         theme: prismThemes.github,
