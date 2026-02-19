@@ -121,7 +121,7 @@ const sidebars = {
         {
           type: 'doc',
           id: 'support/contact',
-          label: 'Contact'
+          label: 'Getting Help'
         }
       ]
     },

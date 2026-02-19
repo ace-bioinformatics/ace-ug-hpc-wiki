@@ -7,689 +7,128 @@ sidebar_position: 3
 
 # Advanced Build Topics
 
-This tutorial covers advanced container building techniques including multi-stage builds, GPU-enabled containers, MPI support, and optimization strategies for HPC workloads.
-
-## Learning Objectives
-
-After completing this tutorial, you will be able to:
-
-- Use multi-stage builds to create smaller, more efficient images
-- Build GPU-enabled containers for CUDA and machine learning
-- Create MPI-enabled containers for parallel computing
-- Optimize containers for size and performance
-- Implement security best practices
-
----
+This tutorial covers two techniques that become important as you move beyond basic Dockerfiles: **multi-stage builds** for producing smaller images and **multi-architecture builds** for supporting different CPU architectures.
 
 ## Multi-Stage Builds
 
-Multi-stage builds allow you to use multiple `FROM` statements in a single Dockerfile. This is powerful for separating build-time dependencies from runtime dependencies, resulting in much smaller final images.
+### The Problem
 
-### The Problem: Large Images
+When you build a container that compiles code or installs packages from source, the build tools (compilers, headers, development libraries) end up in the final image even though they're only needed during the build. This bloats your image.
 
-A typical build includes compilers, development headers, and build tools:
+Consider our Monte Carlo example from the previous tutorial. The `python:3.11-slim` base image is ~125 MB, but after adding `build-essential` for compiling numpy, the image grows significantly. Those compilers serve no purpose at runtime — they just waste disk space and increase pull times on the cluster.
 
-```dockerfile
-# Single-stage build (large image)
-FROM python:3.11
+### The Concept
 
-# Install build tools
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    gfortran \
-    libopenblas-dev
+Multi-stage builds (introduced in Docker 17.06) solve this by letting you use multiple `FROM` statements in a single Dockerfile. Each `FROM` begins a new build stage. You can copy artifacts from earlier stages into later ones, leaving the build tools behind.
 
-# Install Python packages (some require compilation)
-RUN pip install numpy scipy pandas scikit-learn
-
-# Your application
-COPY app.py /app/
-CMD ["python", "/app/app.py"]
-
-# Result: ~2GB image with unnecessary build tools
+```
+┌──────────────────────┐       ┌──────────────────────┐
+│    Stage 1: builder  │       │   Stage 2: runtime   │
+│                      │       │                      │
+│  Base: python:3.11   │       │  Base: python:3.11-  │
+│  + build-essential   │ COPY  │        slim           │
+│  + gfortran          │ ───>  │  + /opt/venv (from   │
+│  + libopenblas-dev   │       │    builder stage)     │
+│  + /opt/venv with    │       │  + app code           │
+│    compiled packages │       │                      │
+│                      │       │  No compilers!        │
+│  Size: ~1.5 GB       │       │  Size: ~300 MB        │
+└──────────────────────┘       └──────────────────────┘
 ```
 
-### The Solution: Multi-Stage Build
+The key instruction is `COPY --from=<stage>`, which copies files from a named stage instead of from the build context.
 
-```dockerfile
-# Stage 1: Builder
-FROM python:3.11 AS builder
+### The Example
 
-# Install build dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    gfortran \
-    libopenblas-dev
+Let's rebuild our Monte Carlo simulation with a multi-stage approach. We'll add `scipy` to the requirements so there's a meaningful amount of compiled code to separate.
 
-# Create virtual environment and install packages
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-RUN pip install --no-cache-dir numpy scipy pandas scikit-learn
-
-# Stage 2: Runtime (final image)
-FROM python:3.11-slim
-
-# Install only runtime dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libopenblas0 \
-    libgomp1 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy the virtual environment from builder
-COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-
-# Your application
-WORKDIR /app
-COPY app.py .
-CMD ["python", "app.py"]
-
-# Result: ~500MB image with only what's needed
-```
-
-### Exercise 1: Multi-Stage Build for C++ Application
+Create the project:
 
 ```bash
-mkdir -p ~/multistage-demo
-cd ~/multistage-demo
+mkdir ~/monte-carlo-multistage && cd ~/monte-carlo-multistage
 ```
 
-Create a simple C++ program:
+Create `requirements.txt`:
 
-```bash
-cat > hello.cpp << 'EOF'
-#include <iostream>
-#include <string>
-
-int main(int argc, char* argv[]) {
-    std::string name = (argc > 1) ? argv[1] : "World";
-    std::cout << "Hello, " << name << "!" << std::endl;
-    std::cout << "This binary was compiled inside a container." << std::endl;
-    return 0;
-}
-EOF
 ```
-
-Create a multi-stage Dockerfile:
-
-```bash
-cat > Dockerfile << 'EOF'
-# Stage 1: Build
-FROM gcc:12 AS builder
-
-WORKDIR /build
-COPY hello.cpp .
-RUN g++ -static -o hello hello.cpp
-
-# Stage 2: Runtime
-FROM debian:bookworm-slim
-
-WORKDIR /app
-COPY --from=builder /build/hello .
-
-ENTRYPOINT ["./hello"]
-EOF
-```
-
-Build and compare sizes:
-
-```bash
-# Build multi-stage version
-docker build -t hello-multi:1.0 .
-
-# Build single-stage for comparison
-cat > Dockerfile.single << 'EOF'
-FROM gcc:12
-WORKDIR /app
-COPY hello.cpp .
-RUN g++ -static -o hello hello.cpp
-ENTRYPOINT ["./hello"]
-EOF
-
-docker build -f Dockerfile.single -t hello-single:1.0 .
-
-# Compare sizes
-docker images | grep hello
-```
-
-**Expected output:**
-```
-hello-single   1.0    ...    1.4GB
-hello-multi    1.0    ...    80MB
-```
-
----
-
-## GPU-Enabled Containers
-
-### NVIDIA CUDA Containers
-
-For GPU computing, start with NVIDIA's official CUDA images:
-
-```dockerfile
-# PyTorch with CUDA
-FROM nvidia/cuda:12.2.0-cudnn8-runtime-ubuntu22.04
-
-# Install Python
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 \
-    python3-pip \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install PyTorch with CUDA support
-RUN pip3 install --no-cache-dir \
-    torch \
-    torchvision \
-    torchaudio \
-    --index-url https://download.pytorch.org/whl/cu121
-
-WORKDIR /app
-CMD ["python3"]
-```
-
-### CUDA Image Variants
-
-| Image Tag | Contents | Size | Use Case |
-|-----------|----------|------|----------|
-| `nvidia/cuda:12.2.0-base-ubuntu22.04` | CUDA runtime only | ~200MB | Running pre-compiled CUDA apps |
-| `nvidia/cuda:12.2.0-runtime-ubuntu22.04` | Runtime + cuBLAS, cuFFT | ~1.5GB | Most ML inference |
-| `nvidia/cuda:12.2.0-devel-ubuntu22.04` | Runtime + compilers | ~4GB | Compiling CUDA code |
-| `nvidia/cuda:12.2.0-cudnn8-runtime-ubuntu22.04` | Runtime + cuDNN | ~2GB | Deep learning |
-
-### Exercise 2: PyTorch GPU Container
-
-```bash
-mkdir -p ~/pytorch-gpu
-cd ~/pytorch-gpu
-```
-
-Create a GPU test script:
-
-```bash
-cat > test_gpu.py << 'EOF'
-#!/usr/bin/env python3
-"""Test GPU availability and run a simple computation."""
-
-import torch
-import time
-
-def main():
-    print("=" * 60)
-    print("PyTorch GPU Test")
-    print("=" * 60)
-
-    print(f"\nPyTorch version: {torch.__version__}")
-    print(f"CUDA available: {torch.cuda.is_available()}")
-
-    if torch.cuda.is_available():
-        print(f"CUDA version: {torch.version.cuda}")
-        print(f"cuDNN version: {torch.backends.cudnn.version()}")
-        print(f"Number of GPUs: {torch.cuda.device_count()}")
-
-        for i in range(torch.cuda.device_count()):
-            props = torch.cuda.get_device_properties(i)
-            print(f"\nGPU {i}: {props.name}")
-            print(f"  Memory: {props.total_memory / 1024**3:.1f} GB")
-            print(f"  Compute capability: {props.major}.{props.minor}")
-
-        # Benchmark: Matrix multiplication
-        print("\n" + "=" * 60)
-        print("Running GPU benchmark...")
-        size = 10000
-
-        # Create random matrices on GPU
-        a = torch.randn(size, size, device='cuda')
-        b = torch.randn(size, size, device='cuda')
-
-        # Warm-up
-        torch.matmul(a, b)
-        torch.cuda.synchronize()
-
-        # Benchmark
-        start = time.time()
-        for _ in range(10):
-            c = torch.matmul(a, b)
-        torch.cuda.synchronize()
-        elapsed = time.time() - start
-
-        print(f"10x Matrix multiplication ({size}x{size}): {elapsed:.3f} seconds")
-        print(f"Throughput: {10 * 2 * size**3 / elapsed / 1e12:.2f} TFLOPS")
-    else:
-        print("\nNo GPU available. Running on CPU.")
-        print("To enable GPU, run with: apptainer exec --nv container.sif ...")
-
-    print("=" * 60)
-
-if __name__ == "__main__":
-    main()
-EOF
-```
-
-Create the Dockerfile:
-
-```bash
-cat > Dockerfile << 'EOF'
-FROM nvidia/cuda:12.2.0-cudnn8-runtime-ubuntu22.04
-
-LABEL maintainer="your.email@example.com"
-LABEL description="PyTorch with CUDA support"
-
-# Prevent interactive prompts
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install Python and dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 \
-    python3-pip \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install PyTorch with CUDA
-RUN pip3 install --no-cache-dir \
-    torch \
-    torchvision \
-    torchaudio \
-    --index-url https://download.pytorch.org/whl/cu121
-
-WORKDIR /app
-COPY test_gpu.py .
-
-CMD ["python3", "test_gpu.py"]
-EOF
-```
-
-Build and push:
-
-```bash
-docker build -t pytorch-gpu:1.0 .
-docker tag pytorch-gpu:1.0 yourusername/pytorch-gpu:1.0
-docker push yourusername/pytorch-gpu:1.0
-```
-
-On ACE HPC:
-```bash
-module load apptainer
-apptainer exec --nv docker://yourusername/pytorch-gpu:1.0 python3 /app/test_gpu.py
-```
-
-### TensorFlow GPU Container
-
-```dockerfile
-# TensorFlow with GPU
-FROM tensorflow/tensorflow:2.14.0-gpu
-
-LABEL description="TensorFlow with GPU support"
-
-# Install additional packages
-RUN pip install --no-cache-dir \
-    pandas \
-    matplotlib \
-    scikit-learn
-
-WORKDIR /app
-COPY train.py .
-
-CMD ["python", "train.py"]
-```
-
----
-
-## MPI Containers for Parallel Computing
-
-Message Passing Interface (MPI) enables distributed parallel computing across multiple nodes.
-
-### MPI Container Strategy
-
-The key challenge with MPI containers is that the MPI version inside the container should be compatible with the host system's MPI. There are two approaches:
-
-1. **Hybrid approach** (recommended): Use host MPI to launch container processes
-2. **Container MPI**: Include MPI in the container (simpler but may have compatibility issues)
-
-### Exercise 3: MPI Container
-
-```bash
-mkdir -p ~/mpi-container
-cd ~/mpi-container
-```
-
-Create an MPI test program:
-
-```bash
-cat > mpi_hello.py << 'EOF'
-#!/usr/bin/env python3
-"""Simple MPI hello world with mpi4py."""
-
-from mpi4py import MPI
-import socket
-
-def main():
-    comm = MPI.COMM_WORLD
-    rank = comm.Get_rank()
-    size = comm.Get_size()
-    hostname = socket.gethostname()
-
-    print(f"Hello from rank {rank}/{size} on {hostname}")
-
-    # Simple collective operation
-    comm.Barrier()
-
-    if rank == 0:
-        print(f"\n{'='*50}")
-        print(f"MPI Info:")
-        print(f"  Total processes: {size}")
-        print(f"  MPI Version: {MPI.Get_version()}")
-        print(f"{'='*50}")
-
-if __name__ == "__main__":
-    main()
-EOF
-```
-
-Create the Dockerfile:
-
-```bash
-cat > Dockerfile << 'EOF'
-FROM ubuntu:22.04
-
-LABEL description="MPI-enabled Python container"
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install MPI and Python
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 \
-    python3-pip \
-    openmpi-bin \
-    libopenmpi-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install mpi4py
-RUN pip3 install --no-cache-dir mpi4py numpy
-
-WORKDIR /app
-COPY mpi_hello.py .
-
-# Default to running the MPI program
-CMD ["python3", "mpi_hello.py"]
-EOF
-```
-
-Build:
-
-```bash
-docker build -t mpi-hello:1.0 .
-```
-
-### Running MPI Containers on ACE HPC
-
-```bash
-#!/bin/bash
-#SBATCH --job-name=mpi-container
-#SBATCH --nodes=2
-#SBATCH --ntasks-per-node=4
-#SBATCH --time=00:30:00
-
-module load apptainer
-module load openmpi
-
-# Run MPI across nodes using host MPI
-mpirun -np $SLURM_NTASKS apptainer exec mpi-hello.sif python3 /app/mpi_hello.py
-```
-
----
-
-## Optimization Techniques
-
-### 1. Minimize Layers
-
-```dockerfile
-# Bad: Many layers
-RUN apt-get update
-RUN apt-get install -y curl
-RUN apt-get install -y git
-RUN apt-get clean
-
-# Good: Single layer
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        curl \
-        git \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-```
-
-### 2. Order by Change Frequency
-
-```dockerfile
-# Things that rarely change first
-FROM python:3.11-slim
-
-# System dependencies (rarely change)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgomp1 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Python dependencies (change occasionally)
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Application code (changes frequently)
-COPY src/ /app/src/
-```
-
-### 3. Use .dockerignore
-
-```bash
-# .dockerignore
-.git
-.gitignore
-__pycache__
-*.pyc
-.pytest_cache
-.venv
-venv
-*.egg-info
-dist
-build
-.tox
-.coverage
-htmlcov
-*.log
-.env
-.env.*
-Dockerfile
-docker-compose*.yml
-*.md
-!README.md
-data/
-output/
-```
-
-### 4. Pin Versions for Reproducibility
-
-```dockerfile
-# requirements.txt with pinned versions
-FROM python:3.11.4-slim
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-```
-
-```txt
-# requirements.txt
 numpy==1.24.3
-pandas==2.0.3
-scikit-learn==1.3.0
-matplotlib==3.7.2
+scipy==1.11.1
 ```
 
-### 5. Use Specific Base Image Digests
+Create `estimate_pi.py` (same as before, but now using scipy for a comparison):
 
-```dockerfile
-# Most reproducible: use digest
-FROM python:3.11.4-slim@sha256:abc123...
-
-# Good: specific version
-FROM python:3.11.4-slim
-
-# Avoid: tag can change
-FROM python:3.11-slim
-FROM python:latest
-```
-
----
-
-## Security Best Practices
-
-### 1. Run as Non-Root User
-
-```dockerfile
-FROM python:3.11-slim
-
-# Create non-root user
-RUN useradd -m -s /bin/bash appuser
-
-WORKDIR /app
-COPY --chown=appuser:appuser . .
-
-# Switch to non-root user
-USER appuser
-
-CMD ["python", "app.py"]
-```
-
-### 2. Never Include Secrets
-
-```dockerfile
-# NEVER do this
-ENV API_KEY=secret123
-COPY credentials.json /app/
-
-# Instead, mount at runtime:
-# docker run -v ~/.config/myapp:/config:ro myimage
-# apptainer exec --bind ~/.config/myapp:/config:ro container.sif
-```
-
-### 3. Use Official Base Images
-
-```dockerfile
-# Good: Official images
-FROM python:3.11-slim
-FROM ubuntu:22.04
-FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04
-
-# Avoid: Unknown sources
-FROM random-user/mystery-image:latest
-```
-
-### 4. Verify Downloads
-
-```dockerfile
-RUN curl -fsSL https://example.com/file.tar.gz -o file.tar.gz \
-    && echo "abc123... file.tar.gz" | sha256sum -c - \
-    && tar xzf file.tar.gz \
-    && rm file.tar.gz
-```
-
-### 5. Minimize Attack Surface
-
-```dockerfile
-# Remove unnecessary packages
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends needed-package \
-    && apt-get purge -y --auto-remove \
-    && rm -rf /var/lib/apt/lists/*
-
-# Don't install documentation
-RUN pip install --no-cache-dir --no-compile package
-```
-
----
-
-## Exercise 4: Optimized ML Container
-
-Let's build a production-ready ML container using all techniques:
-
-```bash
-mkdir -p ~/optimized-ml
-cd ~/optimized-ml
-```
-
-Create requirements:
-
-```bash
-cat > requirements.txt << 'EOF'
-numpy==1.24.3
-pandas==2.0.3
-scikit-learn==1.3.0
-joblib==1.3.2
-EOF
-```
-
-Create the application:
-
-```bash
-cat > train_model.py << 'EOF'
+```python
 #!/usr/bin/env python3
-"""Train a simple ML model."""
+"""Estimate Pi using Monte Carlo and scipy's statistical tools."""
 
 import argparse
-import joblib
 import numpy as np
-import pandas as pd
-from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report
+from scipy import stats
+import time
+import json
+
+def monte_carlo_pi(num_samples):
+    """Estimate Pi via random sampling."""
+    x = np.random.uniform(0, 1, num_samples)
+    y = np.random.uniform(0, 1, num_samples)
+    inside = np.sum(x**2 + y**2 <= 1)
+    return 4 * inside / num_samples
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--output', '-o', default='/output/model.joblib')
-    parser.add_argument('--n-estimators', type=int, default=100)
+    parser = argparse.ArgumentParser(description="Monte Carlo Pi estimation with statistics")
+    parser.add_argument("samples", type=int, nargs="?", default=1_000_000)
+    parser.add_argument("--trials", type=int, default=10,
+                        help="Number of independent trials")
+    parser.add_argument("--output", "-o", type=str, default=None)
     args = parser.parse_args()
 
-    print("Loading data...")
-    iris = load_iris()
-    X_train, X_test, y_train, y_test = train_test_split(
-        iris.data, iris.target, test_size=0.2, random_state=42
-    )
+    print(f"Running {args.trials} trials of {args.samples:,} samples each...")
+    start = time.time()
 
-    print(f"Training RandomForest with {args.n_estimators} estimators...")
-    model = RandomForestClassifier(n_estimators=args.n_estimators, random_state=42)
-    model.fit(X_train, y_train)
+    estimates = [monte_carlo_pi(args.samples) for _ in range(args.trials)]
+    elapsed = time.time() - start
 
-    # Evaluate
-    cv_scores = cross_val_score(model, X_train, y_train, cv=5)
-    print(f"Cross-validation accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std()*2:.4f})")
+    mean = np.mean(estimates)
+    ci = stats.t.interval(0.95, df=len(estimates)-1,
+                          loc=mean, scale=stats.sem(estimates))
 
-    y_pred = model.predict(X_test)
-    print("\nTest set classification report:")
-    print(classification_report(y_test, y_pred, target_names=iris.target_names))
+    print(f"  Mean estimate: {mean:.8f}")
+    print(f"  95% CI:        [{ci[0]:.8f}, {ci[1]:.8f}]")
+    print(f"  Actual Pi:     {np.pi:.8f}")
+    print(f"  Total time:    {elapsed:.3f}s")
 
-    # Save model
-    joblib.dump(model, args.output)
-    print(f"\nModel saved to {args.output}")
+    if args.output:
+        results = {
+            "trials": args.trials,
+            "samples_per_trial": args.samples,
+            "mean": mean,
+            "ci_lower": ci[0],
+            "ci_upper": ci[1],
+            "elapsed_seconds": elapsed,
+        }
+        with open(args.output, "w") as f:
+            json.dump(results, f, indent=2)
+        print(f"  Results written to {args.output}")
 
 if __name__ == "__main__":
     main()
-EOF
 ```
 
-Create the optimized Dockerfile:
+Now create a `Dockerfile` with two stages:
 
-```bash
-cat > Dockerfile << 'EOF'
-# Stage 1: Builder
-FROM python:3.11-slim AS builder
+```dockerfile
+# ---- Stage 1: Builder ----
+# This stage installs compilers and builds all Python packages.
+FROM python:3.11 AS builder
 
-WORKDIR /build
-
-# Install build dependencies
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         build-essential \
+        gfortran \
+        libopenblas-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Create venv and install packages
+# Install packages into a virtual environment so we can copy it cleanly.
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
@@ -697,93 +136,222 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 
-# Stage 2: Runtime
+# ---- Stage 2: Runtime ----
+# This stage starts fresh and copies only the compiled packages.
 FROM python:3.11-slim
 
-# Metadata
-LABEL maintainer="your.email@example.com"
-LABEL description="Optimized ML training container"
-LABEL version="1.0"
-
-# Install only runtime dependencies
+# Install only the runtime libraries (no compilers, no headers).
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
+        libopenblas0 \
         libgomp1 \
-    && rm -rf /var/lib/apt/lists/* \
-    && useradd -m -s /bin/bash mluser
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy virtual environment
+# Copy the virtual environment from the builder stage.
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Set up application
 WORKDIR /app
-COPY --chown=mluser:mluser train_model.py .
+COPY estimate_pi.py .
+RUN chmod +x estimate_pi.py
 
-# Create output directory
-RUN mkdir -p /output && chown mluser:mluser /output
-
-# Switch to non-root user
-USER mluser
-
-ENTRYPOINT ["python", "train_model.py"]
-CMD ["--help"]
-EOF
+CMD ["python", "estimate_pi.py"]
 ```
 
-Build and test:
+**What's happening here:**
+
+- **Stage 1** (`AS builder`) starts from the full `python:3.11` image (~1 GB), installs compilers and development headers, creates a virtual environment, and compiles numpy and scipy inside it. This stage is a build tool — it produces `/opt/venv` with all the compiled packages.
+
+- **Stage 2** starts fresh from `python:3.11-slim` (~125 MB). It installs only the *runtime* libraries (the shared `.so` files that numpy/scipy link against, without the headers or compilers). Then `COPY --from=builder /opt/venv /opt/venv` pulls the compiled virtual environment from stage 1 into the clean image.
+
+The compilers, development headers, and all of stage 1's baggage are left behind. They exist during the build but are not in the final image.
+
+Build both versions and compare:
 
 ```bash
-# Build
-docker build -t ml-train:1.0 .
+# Multi-stage build
+docker build -t monte-carlo-ms:0.1 .
 
-# Check size
-docker images ml-train:1.0
+# For comparison, build a single-stage version
+cat > Dockerfile.single << 'EOF'
+FROM python:3.11
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential gfortran libopenblas-dev \
+    && rm -rf /var/lib/apt/lists/*
+RUN pip install --no-cache-dir numpy==1.24.3 scipy==1.11.1
+WORKDIR /app
+COPY estimate_pi.py .
+CMD ["python", "estimate_pi.py"]
+EOF
 
-# Test
-mkdir -p output
-docker run -v $(pwd)/output:/output ml-train:1.0 --output /output/model.joblib
+docker build -f Dockerfile.single -t monte-carlo-single:0.1 .
 
-# Verify model was saved
-ls -la output/
+# Compare image sizes
+docker images | grep monte-carlo
 ```
 
+```
+monte-carlo-single   0.1    ...   1.41GB
+monte-carlo-ms       0.1    ...   327MB
+```
+
+The multi-stage image is roughly **4x smaller** with identical functionality.
+
+<!-- TODO: Add a screenshot showing the docker images output comparing the two sizes -->
+
+Test that the multi-stage image works:
+
+```bash
+docker run --rm monte-carlo-ms:0.1 python estimate_pi.py 1000000 --trials 5
+```
+
+:::tip Debugging build stages
+You can build up to a specific stage using `--target`:
+```bash
+docker build --target builder -t monte-carlo-debug:0.1 .
+docker run --rm -it monte-carlo-debug:0.1 /bin/bash
+```
+This gives you a shell in the builder stage so you can inspect what was installed, check library paths, and troubleshoot compilation issues.
+:::
+
 ---
 
-## Container Size Comparison
+## Multi-Architecture Builds
 
-| Approach | Typical Size |
-|----------|--------------|
-| `python:3.11` + packages | 1.5-2 GB |
-| `python:3.11-slim` + packages | 400-600 MB |
-| Multi-stage with slim | 150-300 MB |
-| Multi-stage + optimization | 100-200 MB |
+### The Problem
+
+Container images are built for a specific CPU architecture. An image built on an Intel/AMD laptop (linux/amd64) won't run on an ARM-based Mac (linux/arm64), or on other architectures found in some HPC clusters.
+
+If you build on a Mac with Apple Silicon, the image defaults to `linux/arm64`. If ACE HPC nodes use `linux/amd64`, the container either fails or runs under slow emulation.
+
+### The Concept
+
+Multi-architecture builds create a single image tag that contains variants for multiple architectures. When someone pulls the image, Docker or Apptainer automatically selects the correct variant for their platform. This is handled by `docker buildx`, which uses QEMU emulation to build for architectures other than your host.
+
+```
+                     yourusername/monte-carlo:0.2
+                              │
+               ┌──────────────┼──────────────┐
+               │              │              │
+          linux/amd64    linux/arm64    linux/ppc64le
+           (Intel)     (Apple M-series)   (POWER)
+```
+
+### Prerequisites
+
+- **Docker Desktop** (Mac/Windows): Includes `buildx` and QEMU emulation out of the box.
+- **Docker Engine on Linux**: You may need to install QEMU separately:
+  ```bash
+  docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  ```
+
+### The Example
+
+We'll take the same Monte Carlo simulation and build it for both `linux/amd64` and `linux/arm64`.
+
+First, create a new builder instance that supports multi-platform builds:
+
+```bash
+# List existing builders
+docker buildx ls
+
+# Create a new builder with multi-platform support
+docker buildx create --name multiplatform --bootstrap --use
+```
+
+<!-- TODO: Add a screenshot showing the output of `docker buildx ls` with the new builder -->
+
+Now build for a single target platform to test:
+
+```bash
+cd ~/monte-carlo-multistage
+
+# Build for amd64 only and load into local Docker
+docker buildx build --platform linux/amd64 -t monte-carlo-ms:0.2-amd64 --load .
+
+# Verify the architecture
+docker inspect monte-carlo-ms:0.2-amd64 | grep Architecture
+```
+
+```json
+"Architecture": "amd64"
+```
+
+Once you've confirmed the single-platform build works, build for multiple architectures. Multi-architecture images **must be pushed directly to a registry** — they cannot be loaded into local Docker because the local daemon only supports one architecture at a time:
+
+```bash
+docker buildx build \
+    --platform linux/amd64,linux/arm64 \
+    -t yourusername/monte-carlo:0.2 \
+    --push \
+    .
+```
+
+This builds the Dockerfile twice — once under `linux/amd64` and once under `linux/arm64` (using QEMU emulation for the non-native architecture). Both images are pushed to Docker Hub under the same tag. When someone pulls `yourusername/monte-carlo:0.2`, Docker automatically selects the variant matching their platform.
+
+Verify the manifest:
+
+```bash
+docker buildx imagetools inspect yourusername/monte-carlo:0.2
+```
+
+This shows the available platforms under that tag.
+
+### Considerations
+
+**Build time:** Building for a non-native architecture is slower because it runs under QEMU emulation. A build that takes 2 minutes natively may take 10–15 minutes under emulation.
+
+**Base image support:** Your base image must support all the target architectures. Most official images (`python`, `ubuntu`, `alpine`) support both `amd64` and `arm64`. Check the image's page on Docker Hub to see its supported architectures.
+
+**Apptainer on ACE HPC:** When you pull a multi-arch image with Apptainer, it automatically selects the architecture matching the cluster's hardware:
+
+```bash
+module load apptainer
+apptainer pull docker://yourusername/monte-carlo:0.2
+# Automatically pulls the linux/amd64 variant on x86_64 nodes
+```
+
+### Automating with GitHub Actions
+
+For production workflows, you can automate multi-architecture builds with GitHub Actions so that every push to your repository builds and pushes images for all platforms:
+
+```yaml
+name: Build and Push Container
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/monte-carlo:${{ github.ref_name }}
+```
+
+This workflow triggers on version tags (e.g., `git tag v0.3 && git push --tags`). It sets up QEMU and buildx, logs into Docker Hub using secrets stored in the repository, and builds + pushes for both architectures.
+
+Store your Docker Hub credentials as GitHub repository secrets (`DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN`) under **Settings > Secrets and variables > Actions**.
 
 ---
 
-## Summary
+**Next:** [Containers on HPC Clusters](containers-hpc) — pull your images on ACE HPC with Apptainer, write SLURM job scripts, and run MPI and GPU workloads.
 
-In this tutorial, you learned:
-
-- **Multi-stage builds**: Separate build and runtime for smaller images
-- **GPU containers**: Use NVIDIA CUDA base images and cuDNN
-- **MPI containers**: Enable parallel computing across nodes
-- **Optimization**: Layer ordering, caching, and cleanup techniques
-- **Security**: Non-root users, no secrets, verified downloads
-
----
-
-## Next Steps
-
-Continue to **[Containers on HPC Clusters](containers-hpc)** to learn how to:
-- Run containers on ACE HPC with Apptainer
-- Write SLURM job scripts for containerized workloads
-- Manage data with bind mounts
-- Optimize performance on the cluster
-
-## Additional Resources
-
-- [Docker Multi-stage Builds](https://docs.docker.com/build/building/multi-stage/)
-- [NVIDIA NGC Catalog](https://catalog.ngc.nvidia.com/)
-- [mpi4py Documentation](https://mpi4py.readthedocs.io/)
-- [Apptainer GPU Support](https://apptainer.org/docs/user/latest/gpu.html)
+**References:** [Docker Multi-stage Builds](https://docs.docker.com/build/building/multi-stage/) | [Docker Buildx](https://docs.docker.com/build/building/multi-platform/) | [QEMU User Emulation](https://github.com/multiarch/qemu-user-static)
