@@ -31,8 +31,6 @@ Let's see how these work together in practice.
 
 We'll containerize a Python script that estimates the value of Pi using a Monte Carlo method. This is a common computational technique — generate random points in a square, count how many fall inside a circle, and use the ratio to estimate Pi.
 
-This example is deliberately simple but touches everything you need: a base image, system packages, Python dependencies, application code, and a configurable entry point.
-
 ### Project Setup
 
 On your local workstation (where Docker is installed), create a project directory:

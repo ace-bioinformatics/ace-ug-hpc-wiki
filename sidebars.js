@@ -156,6 +156,11 @@ const sidebars = {
         },
         {
           type: 'doc',
+          id: 'tutorials/running-jobs/knl-nodes',
+          label: 'Using KNL Node Features',
+        },
+        {
+          type: 'doc',
           id: 'tutorials/running-jobs/troubleshooting',
           label: 'Troubleshooting Jobs', // Overrides "troubleshooting"
         },
