@@ -197,7 +197,6 @@ monte-carlo-ms       0.1    ...   327MB
 
 The multi-stage image is roughly **4x smaller** with identical functionality.
 
-<!-- TODO: Add a screenshot showing the docker images output comparing the two sizes -->
 
 Test that the multi-stage image works:
 

@@ -18,10 +18,10 @@ Without containers, getting software to run on a new machine means manually inst
 │         Your Container              │
 │  ┌───────────────────────────────┐  │
 │  │     Your Application          │  │
-│  │  ┌─────────┐ ┌─────────┐     │  │
-│  │  │ Python  │ │ NumPy   │     │  │
-│  │  │ 3.11    │ │ 1.24    │ ... │  │
-│  │  └─────────┘ └─────────┘     │  │
+│  │  ┌─────────┐ ┌─────────┐      │  │
+│  │  │ Python  │ │ NumPy   │      │  │
+│  │  │ 3.11    │ │ 1.24    │ ...  │  │
+│  │  └─────────┘ └─────────┘      │  │
 │  └───────────────────────────────┘  │
 │       Operating System Layer        │
 │         (Ubuntu 22.04)              │
@@ -117,8 +117,6 @@ print(f'Hostname: {os.uname().nodename}')
 ```
 
 Notice two things: (1) you didn't install Python — it came from the container, and (2) your username and host environment are visible inside the container. This is Apptainer's design — it runs as *you*, not as root.
-
-<!-- TODO: Add a screenshot showing the terminal output of the quick start commands -->
 
 ## Prerequisites
 

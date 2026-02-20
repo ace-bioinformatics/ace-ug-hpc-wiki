@@ -135,6 +135,18 @@ const sidebars = {
           label: 'Tutorials Overview'
         },
         {
+          type: 'category',
+          label: 'Linux Basics',
+          collapsed: true,
+          items: [
+            {
+              type: 'doc',
+              id: 'tutorials/linux-basics/linux-intro',
+              label: 'Introduction to Linux',
+            },
+          ],
+        },
+        {
         type: 'category',
         label: 'Running Slurm Jobs', // Displays as "Running Slurm Jobs" instead of "running-jobs"
         collapsed: true,

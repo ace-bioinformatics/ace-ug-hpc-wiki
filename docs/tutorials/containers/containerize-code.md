@@ -162,13 +162,35 @@ Let's walk through each instruction:
 From the `~/monte-carlo` directory (where your Dockerfile lives), run:
 
 ```bash
-docker build -t monte-carlo:0.1 .
+docker build --platform linux/amd64 -t ianwasukira/monte-carlo:0.1 . 
 ```
-
-- `-t monte-carlo:0.1` tags the image with a name and version
+- `--platform` tells docker to build the image for a specific target operating platform, Intel/AMD Linux systems
+- `-t ianwasukira/monte-carlo:0.1` specifies the account docker should push the image to & tags the image with a name and version
 - `.` tells Docker to use the current directory as the build context (it looks for a file named `Dockerfile` here)
 
-<!-- TODO: Add a screenshot showing the docker build output with each step/layer being built -->
+```
+[+] Building 0.5s (10/10) FINISHED                                                                                                                                                             docker:desktop-linux
+ => [internal] load build definition from Dockerfile                                                                                                                                                           0.0s
+ => => transferring dockerfile: 244B                                                                                                                                                                           0.0s
+ => [internal] load metadata for docker.io/library/ubuntu:24.04                                                                                                                                                0.4s
+ => [internal] load .dockerignore                                                                                                                                                                              0.0s
+ => => transferring context: 2B                                                                                                                                                                                0.0s
+ => [1/5] FROM docker.io/library/ubuntu:24.04@sha256:d1e2e92c075e5ca139d51a140fff46f84315c0fdce203eab2807c7e495eff4f9                                                                                          0.0s
+ => => resolve docker.io/library/ubuntu:24.04@sha256:d1e2e92c075e5ca139d51a140fff46f84315c0fdce203eab2807c7e495eff4f9                                                                                          0.0s
+ => [internal] load build context                                                                                                                                                                              0.0s
+ => => transferring context: 92B                                                                                                                                                                               0.0s
+ => CACHED [2/5] RUN apt-get update && apt-get upgrade -y                                                                                                                                                      0.0s
+ => CACHED [3/5] RUN apt-get install -y python3                                                                                                                                                                0.0s
+ => CACHED [4/5] COPY pi.py /code/pi.py                                                                                                                                                                        0.0s
+ => CACHED [5/5] RUN chmod +rx /code/pi.py                                                                                                                                                                     0.0s
+ => exporting to image                                                                                                                                                                                         0.0s
+ => => exporting layers                                                                                                                                                                                        0.0s
+ => => exporting manifest sha256:02282c6a660f0cddec59ad57f11bad9be4fa447572128d5a50109d8e8359a478                                                                                                              0.0s
+ => => exporting config sha256:d8631be9d908addfd25f392d8cbf70240021c301bc79553e48d6af70067c8450                                                                                                                0.0s
+ => => exporting attestation manifest sha256:e2a61ec11f0ea3d3b8c9d38e65039e1c0b9a74f5059478c7b5dcc73d449ee288                                                                                                  0.0s
+ => => exporting manifest list sha256:efa123ce9ceaac09819d6f6a0d591c5b39209b61ba4a8d3657a8eac08edfcbd8                                                                                                         0.0s
+ => => naming to docker.io/ianwasukira/monte-carlo:0.1                                                                                                                                                         0.0s
+```
 
 You should see Docker execute each instruction. Subsequent builds will be much faster because of layer caching — Docker skips unchanged layers.
 
@@ -255,13 +277,27 @@ Your image currently lives only on your local machine. To use it on ACE HPC, pus
 docker login
 
 # Tag the image with your Docker Hub username
-docker tag monte-carlo:0.1 yourusername/monte-carlo:0.1
+docker tag monte-carlo:0.1 ianwasukira/monte-carlo:0.1
 
 # Push
-docker push yourusername/monte-carlo:0.1
+docker push ianwasukira/monte-carlo:0.1
 ```
 
-<!-- TODO: Add a screenshot showing the image on Docker Hub after pushing -->
+```
+The push refers to repository [docker.io/ianwasukira/monte-carlo]
+b73415306fae: Pushed
+4f4fb700ef54: Mounted from ianwasukira/pi-estimator
+66a4bbbfab88: Pushed
+3fc31d9c7e98: Pushed
+3cc646d3f0dd: Pushed
+9dd65c448696: Pushed
+0.1: digest: sha256:7e702eccde1d6c730f65a47d45ce7078a54519a232dd6b84137ba14f2f4705f4 size: 856
+```
+Navigate to [Docker Hub](https://hub.docker.com/repositories) on your preferred web browser, and go to your repositories.
+
+![Image Pushed to DockerHub](/img/docker-hub-push.png)
+
+Alternatively, you can use the GitHub Coontainer Registry (GHCR);
 
 ### GitHub Container Registry
 
@@ -281,14 +317,33 @@ docker push ghcr.io/yourusername/monte-carlo:0.1
 Once pushed, you can pull the image on ACE HPC using Apptainer:
 
 ```bash
-module load apptainer
-apptainer pull docker://yourusername/monte-carlo:0.1
+(base) [aaiwasukira@kla-ac-hpc-01 ~]$ module load apptainer
+(base) [aaiwasukira@kla-ac-hpc-01 ~]$ apptainer pull docker://iawasukira/monte-carlo:0.1
+INFO:    Converting OCI blobs to SIF format
+INFO:    Starting build...
+INFO:    Fetching OCI image...
+28.4MiB / 28.4MiB [=============================================================================================================================================================================] 100 % 3.5 MiB/s 0s
+13.2MiB / 13.2MiB [=============================================================================================================================================================================] 100 % 3.5 MiB/s 0s
+41.1MiB / 41.1MiB [=============================================================================================================================================================================] 100 % 3.5 MiB/s 0s
+INFO:    Extracting OCI image...
+INFO:    Inserting Apptainer configuration...
+INFO:    Creating SIF file...
+INFO:    To see mksquashfs output with progress bar enable verbose logging
 ```
 
 This creates a file called `monte-carlo_0.1.sif` — Apptainer's native image format. You can now run it:
 
 ```bash
-apptainer exec monte-carlo_0.1.sif python /app/estimate_pi.py 10000000
+(base) [aaiwasukira@kla-ac-hpc-01 ~]$ apptainer run monte-carlo_0.1.sif 1000000
+INFO:    squashfuse not found, will not be able to mount SIF or other squashfs files
+INFO:    gocryptfs not found, will not be able to use gocryptfs
+INFO:    Converting SIF file to temporary sandbox...
+Estimating Pi with 1,000,000 samples...
+  Estimate: 3.14132400
+  Actual:   3.14159265
+  Error:    0.00026865
+  Time:     0.024s
+INFO:    Cleaning up image...
 ```
 
 The full workflow for running containers on ACE HPC, including SLURM job scripts and bind mounts, is covered in [Containers on HPC Clusters](containers-hpc).
