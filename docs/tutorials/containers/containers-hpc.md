@@ -219,13 +219,13 @@ The recommended approach is the **hybrid model**: the container includes MPI lib
 ```
   Host System                    Container
 ┌─────────────────┐          ┌──────────────────┐
-│  mpirun / ibrun │ launches │  Your app + MPI   │
-│  (host MPI)     │ ───────> │  (container MPI)  │
-│                 │          │                    │
-│  Manages:       │          │  Provides:         │
-│  - Network      │          │  - Application     │
-│  - Process      │          │  - Dependencies    │
-│    placement    │          │  - Compatible MPI  │
+│  mpirun / ibrun │ launches │  Your app + MPI  │
+│  (host MPI)     │ ───────> │  (container MPI) │
+│                 │          │                  │
+│  Manages:       │          │  Provides:       │
+│  - Network      │          │  - Application   │
+│  - Process      │          │  - Dependencies  │
+│    placement    │          │  - Compatible MPI│
 └─────────────────┘          └──────────────────┘
 ```
 
@@ -325,8 +325,45 @@ CMD ["python3", "estimate_pi_mpi.py"]
 Build and push:
 
 ```bash
-docker build -t yourusername/monte-carlo-mpi:0.1 .
-docker push yourusername/monte-carlo-mpi:0.1
+docker build --platform linux/amd64 -t ianwasukira/monte-carlo-mpi:0.1 .
+[+] Building 51.6s (12/12) FINISHED                                                                                                                                                            docker:desktop-linux
+ => [internal] load build definition from Dockerfile                                                                                                                                                           0.0s
+ => => transferring dockerfile: 446B                                                                                                                                                                           0.0s
+ => [internal] load metadata for docker.io/library/ubuntu:22.04                                                                                                                                                1.0s
+ => [auth] library/ubuntu:pull token for registry-1.docker.io                                                                                                                                                  0.0s
+ => [internal] load .dockerignore                                                                                                                                                                              0.0s
+ => => transferring context: 2B                                                                                                                                                                                0.0s
+ => [1/6] FROM docker.io/library/ubuntu:22.04@sha256:3ba65aa20f86a0fad9df2b2c259c613df006b2e6d0bfcc8a146afb8c525a9751                                                                                          1.1s
+ => => resolve docker.io/library/ubuntu:22.04@sha256:3ba65aa20f86a0fad9df2b2c259c613df006b2e6d0bfcc8a146afb8c525a9751                                                                                          0.0s
+ => => sha256:b1cba2e842ca52b95817f958faf99734080c78e92e43ce609cde9244867b49ed 29.54MB / 29.54MB                                                                                                               0.8s
+ => => extracting sha256:b1cba2e842ca52b95817f958faf99734080c78e92e43ce609cde9244867b49ed                                                                                                                      0.3s
+ => [internal] load build context                                                                                                                                                                              0.0s
+ => => transferring context: 1.54kB                                                                                                                                                                            0.0s
+ => [2/6] RUN apt-get update     && apt-get install -y --no-install-recommends         python3         python3-pip         openmpi-bin         libopenmpi-dev     && rm -rf /var/lib/apt/lists/*              40.4s
+ => [3/6] RUN pip3 install --no-cache-dir mpi4py numpy                                                                                                                                                         2.5s
+ => [4/6] WORKDIR /app                                                                                                                                                                                         0.0s
+ => [5/6] COPY estimate_pi_mpi.py .                                                                                                                                                                            0.0s
+ => [6/6] RUN chmod +x estimate_pi_mpi.py                                                                                                                                                                      0.1s
+ => exporting to image                                                                                                                                                                                         6.3s
+ => => exporting layers                                                                                                                                                                                        6.3s
+ => => exporting manifest sha256:6ef2c750407397b709e1b0d616052e9fc6626b5a221b03302676f83ff1d2b6f0                                                                                                              0.0s
+ => => exporting config sha256:99c2625718bb3a900f9e2efe51abf1c10f9c6e4b5b25806b543864a2feb55fcc                                                                                                                0.0s
+ => => exporting attestation manifest sha256:5562fc2c080dc34fe0944bca9d807260209078cafb8b83021c9cddea0a9c157a                                                                                                  0.0s
+ => => exporting manifest list sha256:2b9a09f20de16bc9187464b0cc04c7c33db9da1239d9991588ddf2395030bb86                                                                                                         0.0s
+ => => naming to docker.io/ianwasukira/monte-carlo-mpi:0.1                                                                                                                                                     0.0s
+```
+
+```
+docker push ianwasukira/monte-carlo-mpi:0.1
+The push refers to repository [docker.io/ianwasukira/monte-carlo-mpi]
+54c6a19e1ba5: Pushed
+195d96c8233d: Pushed
+7125307ec0a6: Pushed
+64861010b1bc: Pushed
+16a2ff661819: Pushed
+b1cba2e842ca: Pushed
+658d7018384c: Pushed
+0.1: digest: sha256:2b9a09f20de16bc9187464b0cc04c7c33db9da1239d9991588ddf2395030bb86 size: 856
 ```
 
 Test locally with Docker before using cluster :
@@ -369,10 +406,26 @@ mpirun -np $SLURM_NTASKS apptainer exec $CONTAINER \
 Submit:
 
 ```bash
-sbatch mpi-pi.slurm
+(base) [aaiwasukira@kla-ac-hpc-01 ~]$ sbatch mpi_pi.slurm
+Submitted batch job 1197
+(base) [aaiwasukira@kla-ac-hpc-01 ~]$ cat mpi-pi_1197.out
+MPI Pi estimation: 8 total tasks across 1 nodes
+Estimating Pi with 100,000,000 total samples across 8 processes
+  Rank 5/8 on kla-ac-cpu-45: 9,818,024 hits from 12,500,000 samples
+  Rank 6/8 on kla-ac-cpu-45: 9,813,591 hits from 12,500,000 samples
+  Rank 7/8 on kla-ac-cpu-45: 9,814,575 hits from 12,500,000 samples
+  Rank 1/8 on kla-ac-cpu-45: 9,817,978 hits from 12,500,000 samples
+  Rank 2/8 on kla-ac-cpu-45: 9,818,049 hits from 12,500,000 samples
+  Rank 3/8 on kla-ac-cpu-45: 9,818,775 hits from 12,500,000 samples
+  Rank 4/8 on kla-ac-cpu-45: 9,817,634 hits from 12,500,000 samples
+  Estimate: 3.14142368
+  Error:    0.00016897
+  Time:     2.563s
+  Speedup:  8 processes
+  Rank 0/8 on kla-ac-cpu-45: 9,816,966 hits from 12,500,000 samples
 ```
 
-You should see each rank report its hostname — ranks on the same node share a hostname, ranks on different nodes report different hostnames. This confirms MPI is communicating across nodes.
+See each rank report its hostname — ranks on the same node share a hostname, ranks on different nodes report different hostnames. This confirms MPI is communicating across nodes.
 
 ## GPU Containers
 

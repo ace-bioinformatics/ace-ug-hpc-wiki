@@ -9,7 +9,7 @@ When a SLURM job fails to start or runs into errors, there are several tools and
 
 ## Common Issues and Solutions
 
-### 🚫 Job Won’t Start
+### Job Won’t Start
 
 | Check                     | Explanation                                                                 |
 |--------------------------|-----------------------------------------------------------------------------|
@@ -23,7 +23,7 @@ Try lowering resource requests temporarily or switching partitions (if available
 
 ---
 
-### ❌ Job Fails Immediately
+### Job Fails Immediately
 
 | Symptom                            | Solution                                                                 |
 |------------------------------------|--------------------------------------------------------------------------|
@@ -38,7 +38,7 @@ Also confirm that any scripts are executable:
 chmod +x script.sh
 ```
 
-### 📄 Helpful Debugging Tips
+### Helpful Debugging Tips
 Add logging:
 ```bash
 echo "Starting at $(date)"
@@ -51,14 +51,14 @@ env
 
 Add `set -x` in bash scripts to trace execution.
 
-### 🛠 Debugging with an Interactive Session
+### Debugging with an Interactive Session
 You can test interactively before submitting a batch job:
 
 ```bash
 salloc --time=01:00:00 --ntasks=1 --mem=4G
 ```
 
-### 📬 Still Stuck?
+### Still Stuck?
 Contact [support@ace-bioinformatics.org](mailto:support@ace-bioinformatics.org) with:
 
 - Job ID `sacct -j <id>`
