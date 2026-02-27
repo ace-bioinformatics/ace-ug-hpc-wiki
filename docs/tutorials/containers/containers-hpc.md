@@ -406,9 +406,9 @@ mpirun -np $SLURM_NTASKS apptainer exec $CONTAINER \
 Submit:
 
 ```bash
-(base) [aaiwasukira@kla-ac-hpc-01 ~]$ sbatch mpi_pi.slurm
+(base) [<username>@kla-ac-hpc-01 ~]$ sbatch mpi_pi.slurm
 Submitted batch job 1197
-(base) [aaiwasukira@kla-ac-hpc-01 ~]$ cat mpi-pi_1197.out
+(base) [<username>@kla-ac-hpc-01 ~]$ cat mpi-pi_1197.out
 MPI Pi estimation: 8 total tasks across 1 nodes
 Estimating Pi with 100,000,000 total samples across 8 processes
   Rank 5/8 on kla-ac-cpu-45: 9,818,024 hits from 12,500,000 samples

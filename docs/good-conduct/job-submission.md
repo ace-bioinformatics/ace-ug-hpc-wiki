@@ -195,22 +195,3 @@ JOB1=$(sbatch --parsable preprocess.sh)
 # Submit dependent job
 sbatch --dependency=afterok:$JOB1 analysis.sh
 ```
-
-## Summary Checklist
-
-Before submitting, verify:
-
-- [ ] Resources match tested requirements
-- [ ] Time limit based on actual runtime
-- [ ] Job tested at small scale first
-- [ ] Array jobs are throttled appropriately
-- [ ] Output directory exists and has space
-- [ ] No hardcoded paths
-
-| Practice | Impact |
-|----------|--------|
-| Right-size resources | Faster queue times, fair sharing |
-| Test before scaling | Avoid wasted allocations |
-| Monitor efficiency | Improve future requests |
-| Throttle arrays | Reduce scheduler load |
-| Use dependencies | Clean workflow management |

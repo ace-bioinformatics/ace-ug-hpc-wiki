@@ -317,8 +317,8 @@ docker push ghcr.io/yourusername/monte-carlo:0.1
 Once pushed, you can pull the image on ACE HPC using Apptainer:
 
 ```bash
-(base) [aaiwasukira@kla-ac-hpc-01 ~]$ module load apptainer
-(base) [aaiwasukira@kla-ac-hpc-01 ~]$ apptainer pull docker://iawasukira/monte-carlo:0.1
+(base) [<username>@kla-ac-hpc-01 ~]$ module load apptainer
+(base) [<username>@kla-ac-hpc-01 ~]$ apptainer pull docker://iawasukira/monte-carlo:0.1
 INFO:    Converting OCI blobs to SIF format
 INFO:    Starting build...
 INFO:    Fetching OCI image...
@@ -334,7 +334,7 @@ INFO:    To see mksquashfs output with progress bar enable verbose logging
 This creates a file called `monte-carlo_0.1.sif` — Apptainer's native image format. You can now run it:
 
 ```bash
-(base) [aaiwasukira@kla-ac-hpc-01 ~]$ apptainer run monte-carlo_0.1.sif 1000000
+(base) [<username>@kla-ac-hpc-01 ~]$ apptainer run monte-carlo_0.1.sif 1000000
 INFO:    squashfuse not found, will not be able to mount SIF or other squashfs files
 INFO:    gocryptfs not found, will not be able to use gocryptfs
 INFO:    Converting SIF file to temporary sandbox...

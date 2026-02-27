@@ -39,5 +39,5 @@ Repeated violations of good conduct guidelines may result in:
 
 If you're unsure whether your workflow follows good conduct guidelines, contact the ACE support team **before** running large jobs. We're here to help you succeed while maintaining a healthy shared environment.
 
-- Email: [support@ace.ac.ug](mailto:support@ace.ac.ug)
+- Email: [support@ace-bioinformatics.org](mailto:support@ace-bioinformatics.org)
 - See the [FAQ](/docs/support/faq) for common questions

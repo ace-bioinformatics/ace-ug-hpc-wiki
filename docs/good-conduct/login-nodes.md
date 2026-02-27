@@ -108,15 +108,3 @@ The ACE team monitors login node resource usage. Users running prohibited activi
 1. An automated warning
 2. Process termination
 3. Temporary account suspension for repeated violations
-
-## Summary
-
-| Activity | Login Node | Compute Node |
-|----------|------------|--------------|
-| File editing | Yes | Yes |
-| Job submission | Yes | No |
-| Small compilation | Yes | Yes |
-| Running simulations | **No** | Yes |
-| Data analysis | **No** | Yes |
-| Parallel builds | **No** | Yes |
-| VSCode/IDEs | **No** | Yes |

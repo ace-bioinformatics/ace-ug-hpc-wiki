@@ -74,7 +74,7 @@ Any binary you install to `~/.local/bin` will now be found automatically when yo
 HipSTR is written in C++11 and requires `g++`. Load the GCC module:
 
 ```bash
-ml gnu14
+module load gnu14
 ```
 
 Verify the compiler is available:

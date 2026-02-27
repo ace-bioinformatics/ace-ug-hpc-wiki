@@ -37,8 +37,8 @@ When you connect to the cluster over SSH, you land in a **terminal** — a text 
 After logging in, you will see something like this:
 
 ```
-katukunda@wireless-10-155-153-46 ~ % ssh akatukunda@biocompace.ace.ac.ug
-akatukunda@biocompace.ace.ac.ug's password:
+<username>@wireless-10-155-153-46 ~ % ssh a<username>@biocompace.ace.ac.ug
+a<username>@biocompace.ace.ac.ug's password:
 **************************************************************************
 *                    ACE OpenHPC 3.2 Software Stack                      *
 *                                                                        *
@@ -54,14 +54,14 @@ akatukunda@biocompace.ace.ac.ug's password:
 *                           ACE-Uganda Project                           *
 **************************************************************************
 Last login: Fri Feb 20 20:43:13 2026 from 10.35.50.27
-[akatukunda@kla-ac-hpc-02 ~]$
+[a<username>@kla-ac-hpc-02 ~]$
 ```
 
 This is the **shell prompt**. It tells you:
 
 | Part | Meaning |
 |------|---------|
-| `akatukunda` | Your username |
+| `a<username>` | Your username |
 | `kla-ac-hpc-02` | The name of the login node you are on |
 | `~` | Your current location (the `~` symbol is shorthand for your home directory) |
 | `$` | You are a regular user (not the system administrator) |
@@ -87,7 +87,7 @@ On Windows, files live on drives like `C:\` or `D:\`. On Linux, everything lives
 ```
 /
 ├── home/
-│   └── akatukunda/        ← your home directory
+│   └── a<username>/        ← your home directory
 ├── scratch/               ← fast temporary storage on ACE
 ├── bin/                   ← system programs
 ├── usr/
@@ -122,7 +122,7 @@ pwd
 `pwd` stands for **print working directory**. It tells you exactly where you are in the filesystem right now. You will see something like:
 
 ```
-/home/akatukunda
+/home/a<username>
 ```
 
 ### What is in this directory?
@@ -137,13 +137,13 @@ ls
 ls -l        # long format: shows permissions, size, and date
 ls -lh       # same, but sizes in human-readable form (KB, MB, GB)
 ls -a        # show hidden files (files starting with a dot)
-ls -lh /scratch/akatukunda   # list a specific directory without going there
+ls -lh /scratch/a<username>   # list a specific directory without going there
 ```
 
 ### Moving around
 
 ```bash
-cd /scratch/akatukunda    # go to scratch space
+cd /scratch/a<username>    # go to scratch space
 cd ~                       # go back to your home directory (~ always means $HOME)
 cd ..                      # go up one level (to the parent directory)
 cd -                       # go back to the previous directory
@@ -153,7 +153,7 @@ Practice: from your home directory, navigate to `/scratch`, look around, then re
 
 ```bash
 pwd                        # confirm you're in $HOME
-cd /scratch/akatukunda
+cd /scratch/a<username>
 ls -lh
 cd ~
 pwd                        # you're back in $HOME
@@ -163,12 +163,12 @@ pwd                        # you're back in $HOME
 
 An **absolute path** starts from root `/` and always works regardless of where you are:
 ```
-/scratch/akatukunda/project1/data/reads.fastq
+/scratch/a<username>/project1/data/reads.fastq
 ```
 
 A **relative path** starts from your current location:
 ```
-project1/data/reads.fastq    # only works if you're inside /scratch/akatukunda
+project1/data/reads.fastq    # only works if you're inside /scratch/a<username>
 ```
 
 The shorthand `.` means "the current directory" and `..` means "one level up":
@@ -278,8 +278,8 @@ grep -r "sample_001" /scratch/$USER/ # search recursively through a directory
 Every file and directory on Linux has permissions that control who can read, write, or execute it. When you run `ls -l`, the first column shows this:
 
 ```
--rw-r--r-- 1 akatukunda users  4.2K Jan 15 10:23 notes.txt
-drwxr-xr-x 3 akatukunda users  4.0K Jan 15 10:30 projects/
+-rw-r--r-- 1 a<username> users  4.2K Jan 15 10:23 notes.txt
+drwxr-xr-x 3 a<username> users  4.0K Jan 15 10:30 projects/
 ```
 
 The permission string breaks down as:

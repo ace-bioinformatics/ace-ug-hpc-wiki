@@ -20,13 +20,8 @@ This guide explains how to connect to the ACE HPC Cluster using SSH.
 - Primary login Node:
    ```bash
    ssh <username>@biocompace.ace.ac.ug
-- Old Biocompace1 server:
-   ```bash
-   ssh <username>@biocompace1.ace.ac.ug
-- Old Biocompace2 server:
-   ```bash
-   ssh <username>@biocompace2.ace.ac.ug
-3. Enter your password when prompted.
+   ```
+2. Enter your password when prompted.
 
 
 ## Connecting to the ACE HPC Cluster off-site

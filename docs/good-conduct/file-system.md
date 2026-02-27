@@ -165,13 +165,3 @@ checkpoint_backup.dat
 ### Avoid Simultaneous Large I/O Jobs
 
 If you plan to run many I/O-intensive jobs simultaneously, contact support first to discuss your workflow.
-
-## Summary
-
-| Do | Don't |
-|---|---|
-| Run jobs in `$SCRATCH` | Run I/O-intensive jobs in `$HOME` |
-| Check quota regularly | Ignore quota warnings |
-| Archive small files | Store thousands of tiny files |
-| Clean up after jobs | Leave temporary files indefinitely |
-| Use HDF5/NetCDF for large data | Use thousands of small text files |

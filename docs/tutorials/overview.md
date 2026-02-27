@@ -21,7 +21,7 @@ Aimed at researchers who are used to Windows or macOS and are encountering a Lin
 **Concepts covered:**
 
 - **Why HPC uses Linux** — stability, performance, and the scientific software ecosystem
-- **Reading the shell prompt** — understanding what `[akatukunda@kla-ac-hpc-02 ~]$` tells you about where you are and who you are
+- **Reading the shell prompt** — understanding what `[username@kla-ac-hpc-02 ~]$` tells you about where you are and who you are
 - **The ACE filesystem layout** — the difference between `$HOME` (limited quota, for scripts and config) and `/scratch` (high-speed storage for large datasets and active job output)
 - **Navigating directories** — `pwd` to find where you are, `ls -lh` to list contents with human-readable sizes, `cd` to move around, and the `~`, `.`, and `..` shortcuts
 - **Absolute vs. relative paths** — when to use each and why it matters when writing job scripts

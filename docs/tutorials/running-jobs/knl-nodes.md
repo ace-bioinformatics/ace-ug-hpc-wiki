@@ -234,23 +234,6 @@ This prints node name, active features (including current cluster and memory mod
 
 ---
 
-## Summary
-
-| Concept | Plain explanation |
-|---|---|
-| KNL | Intel Xeon Phi 7250 — 68 cores, 272 threads, designed for parallel workloads |
-| MCDRAM | 16 GB of ultra-fast on-package memory, 4–5× the bandwidth of DDR4 |
-| Cache mode | MCDRAM used automatically as a large cache — no code changes needed |
-| Flat mode | MCDRAM exposed as addressable memory — maximum control, requires care |
-| Hybrid mode | Part cache, part addressable — a middle-ground option |
-| Quadrant mode | Recommended cluster mode — good locality, software sees one NUMA node |
-| All-to-All mode | Simpler but potentially slower due to cross-chip traffic |
-| SNC-2 mode | Two NUMA sub-nodes — only useful for NUMA-aware software |
-| SNC-4 mode | Disabled at ACE due to boot instability |
-| Node reboot | Changing configuration takes ~15 minutes, counted in your wall time |
-
----
-
 ## References
 
 - [Intel Xeon Phi 7250 Product Page](https://www.intel.com/content/www/us/en/products/sku/94033/intel-xeon-phi-processor-7250-16gb-1-40-ghz-68-core/specifications.html)

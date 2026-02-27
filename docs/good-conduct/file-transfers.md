@@ -191,11 +191,3 @@ scp large_file.dat checksum.md5 ace:$SCRATCH/
 cd $SCRATCH
 md5sum -c checksum.md5
 ```
-
-## Summary
-
-1. **Archive small files** before transferring
-2. **Use rsync** for large or repeated transfers
-3. **Limit concurrent transfers** to 2-3 sessions
-4. **Transfer to `$SCRATCH`** for job data, `$WORK` for persistent data
-5. **Verify integrity** for critical data
