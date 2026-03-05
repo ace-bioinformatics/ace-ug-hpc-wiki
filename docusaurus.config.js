@@ -139,7 +139,7 @@ const config = {
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} ACE WIKI, ACE - Uganda. Wasukira Ian.`,
+        copyright: `Copyright © ${new Date().getFullYear()} ACE WIKI, ACE - Uganda.`,
       },
       prism: {
         theme: prismThemes.github,

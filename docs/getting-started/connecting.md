@@ -11,8 +11,6 @@ This guide explains how to connect to the ACE HPC Cluster using SSH.
 
 ### Login Nodes
 - Primary login Node: `biocompace.ace.ac.ug`
-- Old Biocompace1 server: `biocompace1.ace.ac.ug`
-- Old Biocompace2 server: `biocompace2.ace.ac.ug`
 
 ### Connecting via SSH
 1. Open a terminal or SSH client.
