@@ -21,28 +21,35 @@ const config = {
   baseUrl: '/ace-ug-hpc-wiki/',
 
   // GitHub pages deployment config.
-  // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'ace-bioinformatics', // Usually your GitHub org/user name.
-  projectName: 'ace-hpc-wiki', // Usually your repo name.
+  organizationName: 'ace-bioinformatics',
+  projectName: 'ace-hpc-wiki',
 
-   customFields: {
+  customFields: {
     USE_SSH: true,
   },
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
 
-  // Even if you don't use internationalization, you can use this field to set
-  // useful metadata like html lang. For example, if your site is Chinese, you
-  // may want to replace "en" with "zh-Hans".
+  // Load Google Fonts for the homepage component
+  headTags: [
+    {
+      tagName: 'link',
+      attributes: {
+        rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap',
+      },
+    },
+  ],
+
   i18n: {
     defaultLocale: 'en',
     locales: ['en'],
     localeConfigs: {
       en: {
-        htmlLang: 'en-GB'
-      }
-    }
+        htmlLang: 'en-GB',
+      },
+    },
   },
 
   presets: [
@@ -52,26 +59,10 @@ const config = {
       ({
         docs: {
           sidebarPath: './sidebars.js',
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+            'https://github.com/ace-bioinformatics/ace-hpc-wiki/tree/main/',
         },
-        blog: {
-          showReadingTime: true,
-          feedOptions: {
-            type: ['rss', 'atom'],
-            xslt: true,
-          },
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
-          // Useful options to enforce blogging best practices
-          onInlineTags: 'warn',
-          onInlineAuthors: 'warn',
-          onUntruncatedBlogPosts: 'warn',
-        },
+        blog: false,
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -82,8 +73,7 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      // Replace with your project's social card
-      image: 'img/docusaurus-social-card.jpg',
+      image: 'img/ace-social-card.jpg',
       navbar: {
         title: 'ACE UGANDA HPC WIKI',
         logo: {
@@ -130,7 +120,7 @@ const config = {
               {
                 label: 'X',
                 href: 'https://x.com/AceUganda?t=xKzAByMBVx5YtuP29hT95A&s=08',
-              }
+              },
             ],
           },
           {

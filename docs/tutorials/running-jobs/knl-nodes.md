@@ -26,7 +26,7 @@ The design philosophy is that for scientific computing — genomic alignment, Mo
 Each KNL core also supports **4 hardware threads**, meaning a single node can have 272 concurrent threads in flight. This is ideal for applications that can be parallelised across many tasks simultaneously.
 
 :::info
-KNL nodes are not faster at every task. If your program is largely single-threaded or has poor memory access patterns, a standard node will serve you better. KNL shines when the workload is **massively parallel** and **bandwidth-hungry**.
+KNL nodes have many low-clock-speed cores, so single-threaded or poorly parallelized jobs will run **significantly slower** than they would on standard Xeon processors. To get the best performance from the cluster, ensure your workload is parallelized to take advantage of the available cores. Where possible, use multi-threaded or MPI-enabled software and set `--ntasks-per-node` accordingly.
 :::
 
 ---

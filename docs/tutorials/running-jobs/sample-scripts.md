@@ -7,7 +7,7 @@ This page provides a collection of sample SLURM job scripts designed for various
 
 ---
 
-## Sample Script 1: Printing Loaded Modules
+## Printing Loaded Modules
 
 This script lists all currently loaded modules on the cluster, which can help you understand which software packages are available for use.
 
@@ -30,7 +30,7 @@ module list
 
 ---
 
-## Sample Script 2: Checking Available Disk Space
+## Checking Available Disk Space
 
 This script prints the available disk space on the system, which can be useful to monitor the storage usage on your home or project directories.
 
@@ -76,34 +76,33 @@ date
 
 ---
 
-## Sample Script 4: Running a Simple Python Script
+## Running a Simple R Script
 
-This script runs a simple Python script that prints "Hello, World!", which demonstrates how to submit and run a Python job using SLURM.
+This script runs a simple R script that prints "Hello, World!", which demonstrates how to submit and run an R job using SLURM.
 
-### Script: `run_python_demo.sh`
-
+### Script: `run_r_demo.sh`
 ```bash
 #!/bin/bash
-#SBATCH --job-name=python_demo       # Job name
-#SBATCH --output=python_demo.out     # Standard output file
-#SBATCH --error=python_demo.err      # Standard error file
+#SBATCH --job-name=r_demo            # Job name
+#SBATCH --output=r_demo.out          # Standard output file
+#SBATCH --error=r_demo.err           # Standard error file
 #SBATCH --mem=1gb                    # Memory request
 
-# Load Python module (if needed)
-module load python/3.8
+# Load R module
+module load R/4.5.0
 
-# Run a simple Python script that prints "Hello, World!"
-echo "print('Hello, World!')" | python
+# Run a simple R script that prints "Hello, World!"
+echo "cat('Hello, World!\n')" | Rscript --vanilla -
 ```
 
 ### How to Use:
-- Save this script as `run_python_demo.sh`.
-- Submit the script using `sbatch run_python_demo.sh`.
-- The output will be shown in `python_demo.out`, where it should print "Hello, World!".
+- Save this script as `run_r_demo.sh`.
+- Submit the script using `sbatch run_r_demo.sh`.
+- The output will be shown in `r_demo.out`, where it should print "Hello, World!".
 
 ---
 
-## Sample Script 5: Running a Simple Shell Command (Echo)
+## Running a Simple Shell Command (Echo)
 
 This script demonstrates how to use a simple `echo` command to print a message, which is useful for testing job submission with minimal complexity.
 
@@ -125,9 +124,3 @@ echo "This is a demo job running on the cluster!"
 - The message "This is a demo job running on the cluster!" will appear in the `echo_message.out` file.
 
 ---
-
-## Conclusion
-
-These simple SLURM job scripts provide basic examples for running commands, checking system status, and executing scripts. By following these examples, even beginners can start submitting jobs to the cluster and experiment with SLURM job scripts. 
-
-Feel free to modify these scripts to suit your needs and explore further SLURM features! For more advanced scripting and options, refer to the [SLURM documentation](https://slurm.schedmd.com/documentation.html).
