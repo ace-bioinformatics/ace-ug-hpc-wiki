@@ -46,6 +46,14 @@ Upon passing the quiz, users will receive the ACE HPC Policy document, which out
 
 The support team will maintain a folder to store all signed copies of the policy for record-keeping. Users are encouraged to keep a copy of the policy for their reference.
 
+#### Acknowledgments
+
+When publishing research that used ACE HPC resources, please include this acknowledgment:
+
+> *"Computational analysis was performed using the High Performance Computing cluster at the African Centre of Excellence in Bioinformatics and Data Intensive Sciences (ACE), Makerere University, Uganda."*
+
+---
+
 ### Account Creation
 Once the signed policy is received, the ACE HPC team will create an account for the user on the cluster.
 
