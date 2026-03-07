@@ -266,7 +266,7 @@ output/
 
 This works exactly like `.gitignore` — any matching files are excluded from the build context.
 
-## Pushing to a Container Registry
+### Pushing to a Container Registry
 
 Your image currently lives only on your local machine. To use it on ACE HPC, push it to a container registry.
 
@@ -314,11 +314,11 @@ docker push ghcr.io/yourusername/monte-carlo:0.1
 
 ### Pulling on ACE HPC
 
-Once pushed, you can pull the image on ACE HPC using Apptainer:
+Once pushed, Apptainer can convert the Docker image to its native `.sif` format. `apptainer pull` downloads and converts the image — the result is a single portable file you can reference in your job scripts:
 
-```bash
-(base) [<username>@kla-ac-hpc-01 ~]$ module load apptainer
-(base) [<username>@kla-ac-hpc-01 ~]$ apptainer pull docker://iawasukira/monte-carlo:0.1
+```
+$ module load apptainer
+$ apptainer pull docker://iawasukira/monte-carlo:0.1
 INFO:    Converting OCI blobs to SIF format
 INFO:    Starting build...
 INFO:    Fetching OCI image...
@@ -331,23 +331,46 @@ INFO:    Creating SIF file...
 INFO:    To see mksquashfs output with progress bar enable verbose logging
 ```
 
-This creates a file called `monte-carlo_0.1.sif` — Apptainer's native image format. You can now run it:
+This creates a file called `monte-carlo_0.1.sif`. See the next section for how to pull and run this correctly inside a SLURM job.
+
+### Running Containers with SLURM
+
+:::danger Do not run containers on the head node
+The commands shown above (`apptainer pull` and `apptainer run`) are for illustration only. **Do not run them directly on the head node.** The head node is a shared login environment — running compute workloads there slows it down for everyone and may get your session terminated by the system administrators.
+
+All container execution must happen inside a SLURM job script submitted to the compute cluster.
+:::
+
+The `apptainer pull` step (converting the Docker image to a `.sif` file) can be resource-intensive and should also be done inside a job. Here is the correct approach for pulling and running the Monte Carlo container:
 
 ```bash
-(base) [<username>@kla-ac-hpc-01 ~]$ apptainer run monte-carlo_0.1.sif 1000000
-INFO:    squashfuse not found, will not be able to mount SIF or other squashfs files
-INFO:    gocryptfs not found, will not be able to use gocryptfs
-INFO:    Converting SIF file to temporary sandbox...
-Estimating Pi with 1,000,000 samples...
-  Estimate: 3.14132400
-  Actual:   3.14159265
-  Error:    0.00026865
-  Time:     0.024s
-INFO:    Cleaning up image...
+#!/bin/bash
+#SBATCH --job-name=monte-carlo
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=8G
+#SBATCH --time=01:00:00
+#SBATCH --output=monte-carlo-%j.out
+#SBATCH --error=monte-carlo-%j.err
+
+module load apptainer
+
+# Pull the image from Docker Hub (only needed once; skip if .sif already exists)
+if [ ! -f monte-carlo_0.1.sif ]; then
+    apptainer pull docker://ianwasukira/monte-carlo:0.1
+fi
+
+# Run the simulation inside the container
+apptainer run monte-carlo_0.1.sif 1000000 --output results.json
 ```
 
-The full workflow for running containers on ACE HPC, including SLURM job scripts and bind mounts, is covered in [Containers on HPC Clusters](containers-hpc).
+Submit it with:
+
+```bash
+sbatch monte-carlo.sh
+```
+
+The full workflow for running containers on ACE HPC, including bind mounts and GPU access, is covered in [Containers on HPC Clusters](containers-hpc).
 
 ---
-
-**Next:** [Advanced Build Topics](advanced-builds) — reduce image size with multi-stage builds and support multiple CPU architectures.
+**Next:** [Containers on HPC Clusters](containers-hpc) — pull your images on ACE HPC with Apptainer, write SLURM job scripts, and run MPI and GPU workloads.

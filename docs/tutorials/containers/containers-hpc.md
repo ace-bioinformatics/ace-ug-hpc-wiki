@@ -31,13 +31,13 @@ Apptainer is available as a module on ACE HPC. Start an interactive session on a
 
 ```bash
 # Request an interactive session
-salloc --ntasks=1 --mem=4G --time=01:00:00
+$ salloc --ntasks=1 --mem=4G --time=01:00:00
 
 # Load Apptainer
-module load apptainer
+$ module load apptainer
 
 # Verify
-apptainer --version
+$ apptainer --version
 ```
 
 ### Pulling an Image
@@ -46,10 +46,10 @@ Apptainer can pull any Docker image and convert it to its native `.sif` format:
 
 ```bash
 # Pull the Monte Carlo image we built in previous tutorials
-apptainer pull docker://yourusername/monte-carlo:0.1
+$ apptainer pull docker://yourusername/monte-carlo:0.1
 
 # This creates: monte-carlo_0.1.sif
-ls -lh monte-carlo_0.1.sif
+$ ls -lh monte-carlo_0.1.sif
 ```
 
 The `.sif` file is a single, portable file containing the entire container. You can copy it, move it, share it — it's just a file.
@@ -57,20 +57,26 @@ The `.sif` file is a single, portable file containing the entire container. You 
 To pull to a specific directory or with a custom filename:
 
 ```bash
-mkdir -p ~/containers
-apptainer pull ~/containers/monte-carlo.sif docker://yourusername/monte-carlo:0.1
+$ mkdir -p ~/containers
+$ apptainer pull ~/containers/monte-carlo.sif docker://yourusername/monte-carlo:0.1
 ```
 
 :::note Cache management
 Apptainer caches downloaded layers in `~/.apptainer/cache`. If your home directory runs low on space, redirect the cache to scratch storage:
 ```bash
-export APPTAINER_CACHEDIR=/scratch/$USER/.apptainer
-mkdir -p $APPTAINER_CACHEDIR
+$ export APPTAINER_CACHEDIR=/scratch/$USER/.apptainer
+$ mkdir -p $APPTAINER_CACHEDIR
 ```
 Clean the cache with `apptainer cache clean`.
 :::
 
 ### Running Containers
+
+:::danger Do not run containers on the head node
+The commands below are for reference only. **Never run `apptainer exec`, `apptainer run`, or `apptainer shell` on the head node for actual compute work.** The head node is a shared login environment — running workloads there degrades it for all users and may result in your session being terminated.
+
+All container execution must be done inside a SLURM job. Use `sbatch` for batch jobs or `salloc` for interactive sessions on a compute node. See the [SLURM Batch Jobs](#slurm-batch-jobs) section below for the correct approach.
+:::
 
 Apptainer has three commands for running containers:
 
@@ -78,19 +84,19 @@ Apptainer has three commands for running containers:
 
 ```bash
 # Run the Monte Carlo simulation
-apptainer exec monte-carlo_0.1.sif python /app/estimate_pi.py 5000000
+$ apptainer exec monte-carlo_0.1.sif python /app/estimate_pi.py 5000000
 
 # Check what Python version is inside the container
-apptainer exec monte-carlo_0.1.sif python --version
+$ apptainer exec monte-carlo_0.1.sif python --version
 
 # List installed packages
-apptainer exec monte-carlo_0.1.sif pip list
+$ apptainer exec monte-carlo_0.1.sif pip list
 ```
 
 **`apptainer shell`** — Start an interactive shell inside the container for exploration and debugging:
 
 ```bash
-apptainer shell monte-carlo_0.1.sif
+$ apptainer shell monte-carlo_0.1.sif
 Apptainer> python --version
 Apptainer> ls /app/
 Apptainer> cat /etc/os-release
@@ -102,38 +108,51 @@ Notice that inside the shell, you're still *you* — your home directory is acce
 **`apptainer run`** — Execute the container's default command (its `CMD` or `ENTRYPOINT`):
 
 ```bash
-apptainer run monte-carlo_0.1.sif
+$ apptainer run monte-carlo_0.1.sif
 ```
 
-### Bind Mounts
 
-Apptainer automatically mounts your home directory, current working directory, and `/tmp`. This means scripts and data in those locations are directly accessible inside the container without any extra flags.
+### Interactive Shell Sessions with srun
 
-For directories outside these defaults, use `--bind` (or `-B`):
+When you need to explore a container interactively — inspect its filesystem, test commands, or debug a failing job — use `srun` to get an interactive session on a compute node first, then launch `apptainer shell` from there.
 
 ```bash
-# Mount a shared data directory as read-only, and a scratch directory for output
-apptainer exec \
-    --bind /data/shared/project:/input:ro \
-    --bind /scratch/$USER/results:/output \
-    monte-carlo_0.1.sif python /app/estimate_pi.py 10000000 --output /output/results.json
+# Request an interactive session on a compute node
+$ srun --ntasks=1 --cpus-per-task=2 --mem=4G --time=01:00:00 --pty bash
 ```
 
-The syntax is `--bind host_path:container_path[:ro]`. The `:ro` suffix makes the mount read-only, which is good practice for input data so you don't accidentally overwrite it.
-
-### Environment Variables
+Once your shell lands on a compute node, load Apptainer and open the container:
 
 ```bash
-# Pass environment variables to the container
-apptainer exec --env MY_VAR=hello monte-carlo_0.1.sif printenv MY_VAR
-
-# SLURM variables ($SLURM_JOB_ID, $SLURM_CPUS_PER_TASK, etc.) are
-# automatically available inside the container.
-
-# Use --cleanenv to start with a minimal environment, ignoring host variables
-# that might conflict with the container's software:
-apptainer exec --cleanenv monte-carlo_0.1.sif python /app/estimate_pi.py
+$ module load apptainer
+$ apptainer shell ~/containers/monte-carlo.sif
 ```
+
+You'll drop into the container's environment:
+
+```
+Apptainer> python --version
+Python 3.11.x
+Apptainer> pip list
+Apptainer> ls /app/
+Apptainer> python /app/estimate_pi.py 100000
+Apptainer> exit
+```
+
+If you need a GPU node for interactive debugging:
+
+```bash
+$ srun --ntasks=1 --cpus-per-task=4 --mem=16G --time=01:00:00 \
+     --gres=gpu:1 --partition=gpu --pty bash
+
+# Then inside the compute node:
+$ module load apptainer
+$ apptainer shell --nv ~/containers/gpu-benchmark.sif
+```
+
+:::tip
+`apptainer shell` inherits your home directory and current working directory automatically, so your data and scripts are accessible inside the container without any extra `--bind` flags.
+:::
 
 ## SLURM Batch Jobs
 
@@ -158,7 +177,7 @@ module load apptainer
 
 # Define paths
 CONTAINER=~/containers/monte-carlo.sif
-OUTPUT_DIR=/scratch/$USER/mc_results_$SLURM_JOB_ID
+OUTPUT_DIR=mc_results_$SLURM_JOB_ID
 
 # Create output directory
 mkdir -p $OUTPUT_DIR
@@ -185,25 +204,25 @@ Let's walk through the key parts:
 
 **`module load apptainer`** makes the `apptainer` command available. Always include this in your job script — modules loaded in your interactive session aren't inherited by batch jobs.
 
-**`mkdir -p $OUTPUT_DIR`** creates a job-specific output directory on scratch. Using `$SLURM_JOB_ID` in the path keeps results from different runs separate.
+**`mkdir -p $OUTPUT_DIR`** creates a job-specific output directory. Using `$SLURM_JOB_ID` in the path keeps results from different runs separate.
 
 **`--bind $OUTPUT_DIR:/output`** mounts the scratch directory as `/output` inside the container. The Python script writes to `/output/results.json`, which actually lands on scratch.
 
 Submit the job:
 
 ```bash
-sbatch monte-carlo.slurm
+$ sbatch monte-carlo.slurm
 ```
 
 Monitor it:
 
 ```bash
 # Check job status
-squeue -u $USER
+$ squeue -u $USER
 
 # Once completed, view the output
-cat monte-carlo_*.out
-cat /scratch/$USER/mc_results_*/results.json
+$ cat monte-carlo_*.out
+$ cat mc_results_*/results.json
 ```
 
 <!-- TODO: Add a screenshot showing squeue output with the container job running -->
@@ -325,7 +344,7 @@ CMD ["python3", "estimate_pi_mpi.py"]
 Build and push:
 
 ```bash
-docker build --platform linux/amd64 -t ianwasukira/monte-carlo-mpi:0.1 .
+$ docker build --platform linux/amd64 -t yourusername/monte-carlo-mpi:0.1 .
 [+] Building 51.6s (12/12) FINISHED                                                                                                                                                            docker:desktop-linux
  => [internal] load build definition from Dockerfile                                                                                                                                                           0.0s
  => => transferring dockerfile: 446B                                                                                                                                                                           0.0s
@@ -354,8 +373,8 @@ docker build --platform linux/amd64 -t ianwasukira/monte-carlo-mpi:0.1 .
 ```
 
 ```
-docker push ianwasukira/monte-carlo-mpi:0.1
-The push refers to repository [docker.io/ianwasukira/monte-carlo-mpi]
+docker push yourusername/monte-carlo-mpi:0.1
+The push refers to repository [docker.io/yourusername/monte-carlo-mpi]
 54c6a19e1ba5: Pushed
 195d96c8233d: Pushed
 7125307ec0a6: Pushed
@@ -370,11 +389,11 @@ Test locally with Docker before using cluster :
 
 ```bash
 # Single process
-docker run --rm yourusername/monte-carlo-mpi:0.1 \
+$ docker run --rm yourusername/monte-carlo-mpi:0.1 \
     mpirun -n 1 python3 /app/estimate_pi_mpi.py 5000000
 
 # Two processes (if Docker has access to multiple cores)
-docker run --rm yourusername/monte-carlo-mpi:0.1 \
+$ docker run --rm yourusername/monte-carlo-mpi:0.1 \
     mpirun -n 2 python3 /app/estimate_pi_mpi.py 5000000
 ```
 
@@ -406,9 +425,9 @@ mpirun -np $SLURM_NTASKS apptainer exec $CONTAINER \
 Submit:
 
 ```bash
-(base) [<username>@kla-ac-hpc-01 ~]$ sbatch mpi_pi.slurm
+$ sbatch mpi_pi.slurm
 Submitted batch job 1197
-(base) [<username>@kla-ac-hpc-01 ~]$ cat mpi-pi_1197.out
+$ cat mpi-pi_1197.out
 MPI Pi estimation: 8 total tasks across 1 nodes
 Estimating Pi with 100,000,000 total samples across 8 processes
   Rank 5/8 on kla-ac-cpu-45: 9,818,024 hits from 12,500,000 samples
@@ -536,8 +555,8 @@ CMD ["python3", "gpu_benchmark.py"]
 Build and push:
 
 ```bash
-docker build -t yourusername/gpu-benchmark:0.1 .
-docker push yourusername/gpu-benchmark:0.1
+$ docker build -t yourusername/gpu-benchmark:0.1 .
+$ docker push yourusername/gpu-benchmark:0.1
 ```
 
 On ACE HPC, pull the image and create `gpu-bench.slurm`:
@@ -567,7 +586,7 @@ apptainer exec --nv $CONTAINER python3 /app/gpu_benchmark.py --size 8192 --itera
 Submit:
 
 ```bash
-sbatch gpu-bench.slurm
+$ sbatch gpu-bench.slurm
 ```
 
 The output will show CPU GFLOPS vs GPU TFLOPS — typically a 30–100x speedup for matrix operations, depending on the GPU model and matrix size.
@@ -583,8 +602,6 @@ Without `--nv`, the container cannot see the GPU and `torch.cuda.is_available()`
 | `command not found` inside container | Binary isn't in the container's `$PATH` | Check with `apptainer exec container.sif which python` or use the full path |
 | GPU not detected | Missing `--nv` flag | Add `--nv` to the `apptainer exec` command |
 | GPU not detected | No GPU allocated by SLURM | Add `#SBATCH --gres=gpu:1` and `#SBATCH --partition=gpu` |
-| Permission denied on `.sif` file | File permissions | `chmod +r container.sif` |
-| Out of disk space during pull | Cache fills home directory | Set `APPTAINER_CACHEDIR=/scratch/$USER/.apptainer` |
 | MPI processes all on same node | Not using host MPI launcher | Use `mpirun -np $SLURM_NTASKS apptainer exec ...` not `apptainer exec ... mpirun` |
 | Host environment leaking in | Host `$PATH` or Python paths interfere | Use `--cleanenv` to start with a clean environment |
 
@@ -627,3 +644,5 @@ apptainer cache clean
 ---
 
 **See also:** [SLURM Basics](../running-jobs/slurm-basics) | [Writing Job Scripts](../running-jobs/job-scripts) | [Apptainer User Guide](https://apptainer.org/docs/user/latest/)
+
+**Next:** [Advanced Build Topics](advanced-builds) — reduce image size with multi-stage builds and support multiple CPU architectures.

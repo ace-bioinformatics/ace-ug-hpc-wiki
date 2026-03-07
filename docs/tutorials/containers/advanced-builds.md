@@ -45,7 +45,7 @@ Let's rebuild our Monte Carlo simulation with a multi-stage approach. We'll add 
 Create the project:
 
 ```bash
-mkdir ~/monte-carlo-multistage && cd ~/monte-carlo-multistage
+$ mkdir ~/monte-carlo-multistage && cd ~/monte-carlo-multistage
 ```
 
 Create `requirements.txt`:
@@ -170,10 +170,10 @@ Build both versions and compare:
 
 ```bash
 # Multi-stage build
-docker build -t monte-carlo-ms:0.1 .
+$ docker build -t monte-carlo-ms:0.1 .
 
 # For comparison, build a single-stage version
-cat > Dockerfile.single << 'EOF'
+$ cat > Dockerfile.single << 'EOF'
 FROM python:3.11
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential gfortran libopenblas-dev \
@@ -184,10 +184,10 @@ COPY estimate_pi.py .
 CMD ["python", "estimate_pi.py"]
 EOF
 
-docker build -f Dockerfile.single -t monte-carlo-single:0.1 .
+$ docker build -f Dockerfile.single -t monte-carlo-single:0.1 .
 
 # Compare image sizes
-docker images | grep monte-carlo
+$ docker images | grep monte-carlo
 ```
 
 ```
@@ -201,7 +201,7 @@ The multi-stage image is roughly **4x smaller** with identical functionality.
 Test that the multi-stage image works:
 
 ```bash
-docker run --rm monte-carlo-ms:0.1 python estimate_pi.py 1000000 --trials 5
+$ docker run --rm monte-carlo-ms:0.1 python estimate_pi.py 1000000 --trials 5
 ```
 
 :::tip Debugging build stages
@@ -221,7 +221,7 @@ This gives you a shell in the builder stage so you can inspect what was installe
 
 Container images are built for a specific CPU architecture. An image built on an Intel/AMD laptop (linux/amd64) won't run on an ARM-based Mac (linux/arm64), or on other architectures found in some HPC clusters.
 
-If you build on a Mac with Apple Silicon, the image defaults to `linux/arm64`. If ACE HPC nodes use `linux/amd64`, the container either fails or runs under slow emulation.
+If you build on a Mac with Apple Silicon, the image defaults to `linux/arm64`. ACE HPC nodes use `linux/amd64`, the container either fails or runs under slow emulation.
 
 ### The Concept
 
@@ -241,7 +241,7 @@ Multi-architecture builds create a single image tag that contains variants for m
 - **Docker Desktop** (Mac/Windows): Includes `buildx` and QEMU emulation out of the box.
 - **Docker Engine on Linux**: You may need to install QEMU separately:
   ```bash
-  docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  $ docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
   ```
 
 ### The Example
@@ -252,10 +252,10 @@ First, create a new builder instance that supports multi-platform builds:
 
 ```bash
 # List existing builders
-docker buildx ls
+$ docker buildx ls
 
 # Create a new builder with multi-platform support
-docker buildx create --name multiplatform --bootstrap --use
+$ docker buildx create --name multiplatform --bootstrap --use
 ```
 
 <!-- TODO: Add a screenshot showing the output of `docker buildx ls` with the new builder -->
@@ -263,13 +263,13 @@ docker buildx create --name multiplatform --bootstrap --use
 Now build for a single target platform to test:
 
 ```bash
-cd ~/monte-carlo-multistage
+$ cd ~/monte-carlo-multistage
 
 # Build for amd64 only and load into local Docker
-docker buildx build --platform linux/amd64 -t monte-carlo-ms:0.2-amd64 --load .
+$ docker buildx build --platform linux/amd64 -t monte-carlo-ms:0.2-amd64 --load .
 
 # Verify the architecture
-docker inspect monte-carlo-ms:0.2-amd64 | grep Architecture
+$ docker inspect monte-carlo-ms:0.2-amd64 | grep Architecture
 ```
 
 ```json
@@ -279,7 +279,7 @@ docker inspect monte-carlo-ms:0.2-amd64 | grep Architecture
 Once you've confirmed the single-platform build works, build for multiple architectures. Multi-architecture images **must be pushed directly to a registry** — they cannot be loaded into local Docker because the local daemon only supports one architecture at a time:
 
 ```bash
-docker buildx build \
+$ docker buildx build \
     --platform linux/amd64,linux/arm64 \
     -t yourusername/monte-carlo:0.2 \
     --push \
@@ -291,7 +291,7 @@ This builds the Dockerfile twice — once under `linux/amd64` and once under `li
 Verify the manifest:
 
 ```bash
-docker buildx imagetools inspect yourusername/monte-carlo:0.2
+$ docker buildx imagetools inspect yourusername/monte-carlo:0.2
 ```
 
 This shows the available platforms under that tag.
@@ -305,8 +305,8 @@ This shows the available platforms under that tag.
 **Apptainer on ACE HPC:** When you pull a multi-arch image with Apptainer, it automatically selects the architecture matching the cluster's hardware:
 
 ```bash
-module load apptainer
-apptainer pull docker://yourusername/monte-carlo:0.2
+$ module load apptainer
+$ apptainer pull docker://yourusername/monte-carlo:0.2
 # Automatically pulls the linux/amd64 variant on x86_64 nodes
 ```
 
