@@ -36,7 +36,7 @@ We'll containerize a Python script that estimates the value of Pi using a Monte 
 On your local workstation (where Docker is installed), create a project directory:
 
 ```bash
-mkdir ~/monte-carlo && cd ~/monte-carlo
+$ mkdir ~/monte-carlo && cd ~/monte-carlo
 ```
 
 ### The Application Code
@@ -102,7 +102,7 @@ if __name__ == "__main__":
 Test it locally to make sure it works:
 
 ```bash
-python estimate_pi.py 100000
+$ python estimate_pi.py 100000
 ```
 
 ### The Requirements File
@@ -162,7 +162,7 @@ Let's walk through each instruction:
 From the `~/monte-carlo` directory (where your Dockerfile lives), run:
 
 ```bash
-docker build --platform linux/amd64 -t ianwasukira/monte-carlo:0.1 . 
+$ docker build --platform linux/amd64 -t ianwasukira/monte-carlo:0.1 . 
 ```
 - `--platform` tells docker to build the image for a specific target operating platform, Intel/AMD Linux systems
 - `-t ianwasukira/monte-carlo:0.1` specifies the account docker should push the image to & tags the image with a name and version
@@ -197,7 +197,7 @@ You should see Docker execute each instruction. Subsequent builds will be much f
 Verify the image was created:
 
 ```bash
-docker images monte-carlo
+$ docker images monte-carlo
 ```
 
 ```
@@ -210,7 +210,7 @@ monte-carlo   0.1    a1b2c3d4e5f6   30 seconds ago   198MB
 Run the container with the default command:
 
 ```bash
-docker run --rm monte-carlo:0.1
+$ docker run --rm monte-carlo:0.1
 ```
 
 The `--rm` flag removes the container after it exits (otherwise stopped containers accumulate). You should see output like:
@@ -226,26 +226,26 @@ Estimating Pi with 1,000,000 samples...
 Override the default to pass arguments:
 
 ```bash
-docker run --rm monte-carlo:0.1 python estimate_pi.py 10000000 --seed 42
+$ docker run --rm monte-carlo:0.1 python estimate_pi.py 10000000 --seed 42
 ```
 
 Write output to a file using a **bind mount** — this maps a directory on your host into the container so data persists after the container exits:
 
 ```bash
-mkdir -p ~/monte-carlo/output
+$ mkdir -p ~/monte-carlo/output
 
-docker run --rm \
+$ docker run --rm \
     -v ~/monte-carlo/output:/output \
     monte-carlo:0.1 \
     python estimate_pi.py 5000000 --output /output/results.json
 
-cat ~/monte-carlo/output/results.json
+$ cat ~/monte-carlo/output/results.json
 ```
 
 Start an interactive shell inside the container to explore:
 
 ```bash
-docker run --rm -it monte-carlo:0.1 /bin/bash
+$ docker run --rm -it monte-carlo:0.1 /bin/bash
 ```
 
 From inside the container, you can run `python`, check installed packages with `pip list`, inspect the filesystem, and so on. Type `exit` to leave.
@@ -274,13 +274,13 @@ Your image currently lives only on your local machine. To use it on ACE HPC, pus
 
 ```bash
 # Log in (you'll be prompted for your Docker Hub credentials)
-docker login
+$ docker login
 
 # Tag the image with your Docker Hub username
-docker tag monte-carlo:0.1 ianwasukira/monte-carlo:0.1
+$ docker tag monte-carlo:0.1 ianwasukira/monte-carlo:0.1
 
 # Push
-docker push ianwasukira/monte-carlo:0.1
+$ docker push ianwasukira/monte-carlo:0.1
 ```
 
 ```
@@ -303,13 +303,13 @@ Alternatively, you can use the GitHub Coontainer Registry (GHCR);
 
 ```bash
 # Log in using a personal access token
-echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
+$ echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
 
 # Tag for GHCR
-docker tag monte-carlo:0.1 ghcr.io/yourusername/monte-carlo:0.1
+$ docker tag monte-carlo:0.1 ghcr.io/yourusername/monte-carlo:0.1
 
 # Push
-docker push ghcr.io/yourusername/monte-carlo:0.1
+$ docker push ghcr.io/yourusername/monte-carlo:0.1
 ```
 
 ### Pulling on ACE HPC
@@ -367,7 +367,7 @@ apptainer run monte-carlo_0.1.sif 1000000 --output results.json
 Submit it with:
 
 ```bash
-sbatch monte-carlo.sh
+$ sbatch monte-carlo.sh
 ```
 
 The full workflow for running containers on ACE HPC, including bind mounts and GPU access, is covered in [Containers on HPC Clusters](containers-hpc).
