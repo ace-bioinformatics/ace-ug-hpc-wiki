@@ -4,48 +4,72 @@ The ACE cluster provides shared file systems that serve all users. Misusing stor
 
 ## Understanding Your Storage Areas
 
-| File System | Purpose | Quota | Backed Up | Job I/O |
-|-------------|---------|-------|-----------|---------|
-| `$HOME` | Configuration, scripts | Limited | Yes | **No** |
-| `$WORK` | Software, datasets | Moderate | No | Limited |
-| `$SCRATCH` | Temporary job data | Large | No | **Yes** |
+| File System | Purpose | Default Quota | Max Quota |
+|-------------|---------|---------------|-----------|
+| `$HOME` | Scripts, configs, software, datasets, job output | 50 GB | 200 GB |
 
 ### Home Directory (`$HOME`)
 
-Your home directory is for:
+Your home directory is your primary workspace on ACE HPC. It is for:
 - Configuration files (`.bashrc`, `.profile`)
-- Small scripts and source code
+- Scripts and source code
 - Personal settings
+- Software installations (`~/.local/`)
+- Datasets and job input/output (within quota)
 
-**Do not** use `$HOME` for:
-- Job input/output
-- Large datasets
-- Temporary files
+Organise your work into subdirectories to keep things manageable:
 
-### Work Directory (`$WORK`)
+```bash
+$HOME/
+├── projects/       # research projects
+│   └── my_project/
+│       ├── data/
+│       ├── scripts/
+│       └── results/
+├── jobs/           # SLURM job output logs
+└── software/       # locally compiled tools
+```
 
-Use your work directory for:
-- Installing software
-- Storing original datasets
-- Staging data before jobs
-
-### Scratch Directory (`$SCRATCH`)
-
-Use scratch for:
-- All job I/O operations
-- Temporary files generated during computation
-- Large intermediate results
-
-:::warning Scratch Purge Policy
-Files in `$SCRATCH` that haven't been accessed for **30 days** may be automatically deleted. Do not use scratch for long-term storage.
+:::warning Monitor your quota
+Your home directory has a **50 GB** default quota. Exceeding this causes job failures and may prevent login. Check your usage regularly with `du -sh $HOME` and clean up files you no longer need.
 :::
+
+## Storage Quotas
+
+### User Home Directories
+
+| Quota Type | Allocation |
+|------------|-----------|
+| Default | 50 GB |
+| Maximum (with approved request) | 200 GB |
+
+### Project Directories
+
+Project storage is available for groups with larger data requirements:
+
+| Quota Type | Allocation |
+|------------|-----------|
+| Default | 1 TB |
+| Maximum (with approved request) | 5 TB |
+
+To request a project directory, contact [support@ace-bioinformatics.org](mailto:support@ace-bioinformatics.org) with a justification for the storage requirement, the project details, estimated data sizes, and the duration for which the storage is needed.
+
+### Requesting Additional Storage
+
+If your work requires more than the default quota, submit a request to [support@ace-bioinformatics.org](mailto:support@ace-bioinformatics.org) including:
+
+- Justification for the additional storage requirement
+- Project details and estimated data sizes
+- Duration for which the additional storage is needed
+
+Requests are reviewed by the HPC administration team and forwarded to the Centre Director for final approval. You will be notified of the decision within two weeks.
 
 ## Checking Your Quota
 
-Monitor your storage usage regularly:
+Monitor your storage usage regularly. You will receive an alert when your usage reaches 90% of your quota:
 
 ```bash
-# Check quota for all file systems
+# Check your quota and current usage
 quota -s
 
 # Check disk usage in current directory
@@ -54,6 +78,8 @@ du -sh *
 # Find large files in your home directory
 du -ah $HOME | sort -rh | head -20
 ```
+
+If you exceed your quota, write access will be suspended until you reduce your usage below the allocated limit.
 
 ## What Happens When You Exceed Quota
 
@@ -102,33 +128,32 @@ For large datasets, use formats designed for HPC:
 ### Clean Up Regularly
 
 ```bash
-# Remove old temporary files
-find $SCRATCH -name "*.tmp" -mtime +7 -delete
+# Remove old temporary files from your home directory
+find $HOME -name "*.tmp" -mtime +7 -delete
 
-# Archive completed project data
+# Archive completed project data to free space
 tar -czvf project_archive.tar.gz project_dir/
 rm -rf project_dir/
 ```
 
-### Run Jobs in Scratch
+### Organise Job Output
 
-Always direct job I/O to `$SCRATCH`:
+Direct job output to a dedicated directory within `$HOME`:
 
 ```bash
 #!/bin/bash
 #SBATCH --job-name=my_job
-#SBATCH --output=$SCRATCH/jobs/%j.out
+#SBATCH --output=$HOME/jobs/%j.out
 
-# Work in scratch
-cd $SCRATCH
-mkdir -p job_$SLURM_JOB_ID
-cd job_$SLURM_JOB_ID
+# Create a job-specific working directory
+mkdir -p $HOME/jobs/job_$SLURM_JOB_ID
+cd $HOME/jobs/job_$SLURM_JOB_ID
 
 # Run your computation
 ./my_program
 
-# Copy important results back
-cp final_results.dat $WORK/results/
+# Results stay in $HOME/jobs/job_$SLURM_JOB_ID
+# Clean up when you no longer need them
 ```
 
 ## I/O Optimization Tips

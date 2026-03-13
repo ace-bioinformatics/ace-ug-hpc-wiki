@@ -37,8 +37,8 @@ When you connect to the cluster over SSH, you land in a **terminal** — a text 
 After logging in, you will see something like this:
 
 ```
-<username>@wireless-10-155-153-46 ~ % ssh a<username>@biocompace.ace.ac.ug
-a<username>@biocompace.ace.ac.ug's password:
+<username>@wireless-10-155-153-46 ~ % ssh <username>@biocompace.ace.ac.ug
+<username>@biocompace.ace.ac.ug's password:
 **************************************************************************
 *                    ACE OpenHPC 3.2 Software Stack                      *
 *                                                                        *
@@ -54,14 +54,14 @@ a<username>@biocompace.ace.ac.ug's password:
 *                           ACE-Uganda Project                           *
 **************************************************************************
 Last login: Fri Feb 20 20:43:13 2026 from 10.35.50.27
-[a<username>@kla-ac-hpc-02 ~]$
+[<username>@kla-ac-hpc-02 ~]$
 ```
 
 This is the **shell prompt**. It tells you:
 
 | Part | Meaning |
 |------|---------|
-| `a<username>` | Your username |
+| `<username>` | Your username |
 | `kla-ac-hpc-02` | The name of the login node you are on |
 | `~` | Your current location (the `~` symbol is shorthand for your home directory) |
 | `$` | You are a regular user (not the system administrator) |
@@ -87,8 +87,7 @@ On Windows, files live on drives like `C:\` or `D:\`. On Linux, everything lives
 ```
 /
 ├── home/
-│   └── a<username>/        ← your home directory
-├── scratch/               ← fast temporary storage on ACE
+│   └── <username>/        ← your home directory ($HOME)
 ├── bin/                   ← system programs
 ├── usr/
 │   └── local/
@@ -98,15 +97,23 @@ On Windows, files live on drives like `C:\` or `D:\`. On Linux, everything lives
 
 ### The Directories That Matter on ACE HPC
 
-When you log in, you have access to two main storage areas:
+When you log in, your primary storage area is your home directory:
 
-| Location | Variable | Purpose | Notes |
-|----------|----------|---------|-------|
-| `/home/username` | `$HOME` | Your home directory | Limited quota — for scripts, configs, small files |
-| `/scratch/username` | `$SCRATCH` | High-speed scratch space | For large datasets and active job output |
+| Location | Variable | Purpose | Default Quota |
+|----------|----------|---------|---------------|
+| `/home/username` | `$HOME` | Your home directory — scripts, configs, datasets, job output | 50 GB (up to 200 GB on request) |
 
-:::warning Keep $HOME lean
-Your home directory has a storage quota. Store large datasets and job input/output files in `/scratch`, not in `$HOME`. See [File System Practices](../../good-conduct/file-system) for the full guidelines.
+Organise your home directory into subdirectories to keep projects separate and make cleanup easy:
+
+```bash
+$HOME/
+├── projects/       # one subdirectory per research project
+├── jobs/           # SLURM job output logs
+└── software/       # locally compiled tools
+```
+
+:::warning Monitor your quota
+Your home directory has a **50 GB** default quota. Check your usage regularly with `quota -s`. You will receive an alert at 90% capacity. See [File System Practices](../../good-conduct/file-system) for quota details and how to request more space.
 :::
 
 ---
@@ -122,7 +129,7 @@ pwd
 `pwd` stands for **print working directory**. It tells you exactly where you are in the filesystem right now. You will see something like:
 
 ```
-/home/a<username>
+/home/<username>
 ```
 
 ### What is in this directory?
@@ -137,23 +144,24 @@ ls
 ls -l        # long format: shows permissions, size, and date
 ls -lh       # same, but sizes in human-readable form (KB, MB, GB)
 ls -a        # show hidden files (files starting with a dot)
-ls -lh /scratch/a<username>   # list a specific directory without going there
+ls -lh ~/projects   # list a specific directory without going there
 ```
 
 ### Moving around
 
 ```bash
-cd /scratch/a<username>    # go to scratch space
+cd ~/projects              # go to your projects subdirectory
 cd ~                       # go back to your home directory (~ always means $HOME)
 cd ..                      # go up one level (to the parent directory)
 cd -                       # go back to the previous directory
 ```
 
-Practice: from your home directory, navigate to `/scratch`, look around, then return home.
+Practice: from your home directory, navigate into a subdirectory, look around, then return home.
 
 ```bash
 pwd                        # confirm you're in $HOME
-cd /scratch/a<username>
+mkdir -p ~/projects
+cd ~/projects
 ls -lh
 cd ~
 pwd                        # you're back in $HOME
@@ -163,12 +171,12 @@ pwd                        # you're back in $HOME
 
 An **absolute path** starts from root `/` and always works regardless of where you are:
 ```
-/scratch/a<username>/project1/data/reads.fastq
+/home/<username>/projects/project1/data/reads.fastq
 ```
 
 A **relative path** starts from your current location:
 ```
-project1/data/reads.fastq    # only works if you're inside /scratch/a<username>
+project1/data/reads.fastq    # only works if you're inside ~/projects
 ```
 
 The shorthand `.` means "the current directory" and `..` means "one level up":
@@ -224,11 +232,11 @@ Linux has no recycle bin. When you `rm` a file, it is gone immediately — there
 
 ### Practical exercise: build a project structure
 
-Create a clean working directory in your scratch space for a new analysis:
+Create a clean working directory in your home directory for a new analysis:
 
 ```bash
-mkdir -p /scratch/$USER/my_project/{data,scripts,results,logs}
-ls /scratch/$USER/my_project/
+mkdir -p $HOME/projects/my_project/{data,scripts,results,logs}
+ls $HOME/projects/my_project/
 ```
 
 The `{data,scripts,results,logs}` notation is **brace expansion** — Bash expands it into four separate `mkdir` calls. You will see all four directories created at once.
@@ -268,7 +276,7 @@ wc -w results.txt         # count words
 ```bash
 grep "ERROR" job.log                 # find lines containing "ERROR"
 grep -i "warning" job.log            # case-insensitive search
-grep -r "sample_001" /scratch/$USER/ # search recursively through a directory
+grep -r "sample_001" $HOME/projects/ # search recursively through a directory
 ```
 
 ---
@@ -278,8 +286,8 @@ grep -r "sample_001" /scratch/$USER/ # search recursively through a directory
 Every file and directory on Linux has permissions that control who can read, write, or execute it. When you run `ls -l`, the first column shows this:
 
 ```
--rw-r--r-- 1 a<username> users  4.2K Jan 15 10:23 notes.txt
-drwxr-xr-x 3 a<username> users  4.0K Jan 15 10:30 projects/
+-rw-r--r-- 1 <username> users  4.2K Jan 15 10:23 notes.txt
+drwxr-xr-x 3 <username> users  4.0K Jan 15 10:30 projects/
 ```
 
 The permission string breaks down as:
@@ -313,13 +321,12 @@ The shell uses **environment variables** to store configuration values. They are
 echo $HOME       # your home directory
 echo $USER       # your username
 echo $PATH       # the list of directories the shell searches for programs
-echo $SCRATCH    # your scratch directory on ACE
 ```
 
 You can set your own:
 
 ```bash
-export PROJECT="/scratch/$USER/my_project"
+export PROJECT="$HOME/projects/my_project"
 echo $PROJECT
 ls $PROJECT
 ```

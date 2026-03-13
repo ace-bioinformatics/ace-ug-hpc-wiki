@@ -15,7 +15,7 @@ As a shared resource, ACE HPC serves many researchers simultaneously. Your actio
 |---|---|
 | Submit jobs via SLURM | Run computations on login nodes |
 | Monitor your quota usage | Exceed allocated storage |
-| Use `$SCRATCH` for job I/O | Run I/O-intensive jobs in `$HOME` |
+| Organise job output in `$HOME/jobs/` | Leave large result files in `$HOME` indefinitely |
 | Archive small files before transfer | Transfer thousands of tiny files |
 | Request appropriate resources | Over-request nodes or time |
 

@@ -22,13 +22,13 @@ Aimed at researchers who are used to Windows or macOS and are encountering a Lin
 
 - **Why HPC uses Linux** — stability, performance, and the scientific software ecosystem
 - **Reading the shell prompt** — understanding what `[username@kla-ac-hpc-02 ~]$` tells you about where you are and who you are
-- **The ACE filesystem layout** — the difference between `$HOME` (limited quota, for scripts and config) and `/scratch` (high-speed storage for large datasets and active job output)
+- **The ACE filesystem layout** — your `$HOME` directory (50 GB default quota, for scripts, configs, datasets, and job output) and how to organise it effectively
 - **Navigating directories** — `pwd` to find where you are, `ls -lh` to list contents with human-readable sizes, `cd` to move around, and the `~`, `.`, and `..` shortcuts
 - **Absolute vs. relative paths** — when to use each and why it matters when writing job scripts
 - **Creating and managing files and directories** — `mkdir -p` for nested directories in one step, `cp`, `mv`, `rm`, and using brace expansion (`{data,scripts,results,logs}`) to set up a project structure instantly
 - **Viewing file contents** — `cat`, `less` for scrollable inspection, `head`/`tail` for large files, `tail -f` to watch a running job's log in real time, and `grep` to search inside files
 - **File permissions** — reading the `rwxr-xr-x` permission string from `ls -l`, and using `chmod +x` to make a script executable
-- **Environment variables** — what `$HOME`, `$USER`, `$SCRATCH`, and `$PATH` are, how to read them with `echo`, and how to define your own with `export`
+- **Environment variables** — what `$HOME`, `$USER`, and `$PATH` are, how to read them with `echo`, and how to define your own with `export`
 - **Bash scripting (practical example)** — writing a complete script that loops over sample log files, detects failures with `grep`, moves failed logs to a review folder, and writes a formatted summary report; covers shebangs, variables, `for` loops, `if` statements, `>>` append redirection, and arithmetic with `(( ))`
 - **Terminal habits that save time** — Tab completion, command history (`history`, Up arrow, `Ctrl+R`), stopping a running command with `Ctrl+C`, and reading manual pages with `man`
 

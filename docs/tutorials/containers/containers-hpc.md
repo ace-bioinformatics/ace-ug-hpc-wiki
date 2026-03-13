@@ -62,12 +62,11 @@ $ apptainer pull ~/containers/monte-carlo.sif docker://yourusername/monte-carlo:
 ```
 
 :::note Cache management
-Apptainer caches downloaded layers in `~/.apptainer/cache`. If your home directory runs low on space, redirect the cache to scratch storage:
+Apptainer caches downloaded layers in `~/.apptainer/cache`. This counts toward your `$HOME` quota. Clean the cache regularly if you are pulling many images:
 ```bash
-$ export APPTAINER_CACHEDIR=/scratch/$USER/.apptainer
-$ mkdir -p $APPTAINER_CACHEDIR
+apptainer cache clean
 ```
-Clean the cache with `apptainer cache clean`.
+You can check cache size with `apptainer cache list`.
 :::
 
 ### Running Containers
