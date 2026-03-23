@@ -106,7 +106,49 @@ const sidebars = {
           type: 'doc',
           id: 'software/custom-install',
           label: 'Custom Install'
-        }
+        },
+        {
+          type: 'category',
+          label: 'Open OnDemand',
+          collapsed: true,
+          items: [
+            {
+              type: 'doc',
+              id: 'software/open-ondemand/intro',
+              label: 'What is Open OnDemand?'
+            },
+            {
+              type: 'doc',
+              id: 'software/open-ondemand/dashboard',
+              label: 'The Dashboard'
+            },
+            {
+              type: 'doc',
+              id: 'software/open-ondemand/files',
+              label: 'File Manager'
+            },
+            {
+              type: 'doc',
+              id: 'software/open-ondemand/jobs',
+              label: 'Job Management'
+            },
+            {
+              type: 'doc',
+              id: 'software/open-ondemand/shell',
+              label: 'Shell Access'
+            },
+            {
+              type: 'doc',
+              id: 'software/open-ondemand/rstudio',
+              label: 'RStudio Server'
+            },
+            {
+              type: 'doc',
+              id: 'software/open-ondemand/jupyter',
+              label: 'Jupyter Notebook & Lab'
+            }
+          ]
+        },
       ]
     },
     {
