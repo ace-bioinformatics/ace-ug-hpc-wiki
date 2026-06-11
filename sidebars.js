@@ -108,6 +108,11 @@ const sidebars = {
           label: 'Custom Install'
         },
         {
+          type: 'doc',
+          id: 'software/alphafold2',
+          label: 'AlphaFold2'
+        },
+        {
           type: 'category',
           label: 'Open OnDemand',
           collapsed: true,
