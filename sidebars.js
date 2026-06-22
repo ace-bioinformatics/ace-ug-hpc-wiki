@@ -108,6 +108,11 @@ const sidebars = {
           label: 'Custom Install'
         },
         {
+          type: 'doc',
+          id: 'software/alphafold2',
+          label: 'AlphaFold2'
+        },
+        {
           type: 'category',
           label: 'Open OnDemand',
           collapsed: true,
@@ -212,6 +217,11 @@ const sidebars = {
           type: 'doc',
           id: 'tutorials/running-jobs/knl-nodes',
           label: 'Using KNL Node Features',
+        },
+        {
+          type: 'doc',
+          id: 'tutorials/running-jobs/jobs-on-gpu',
+          label: 'Using GPUs',
         },
         {
           type: 'doc',
