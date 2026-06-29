@@ -50,7 +50,7 @@ The support team will maintain a folder to store all signed copies of the policy
 
 When publishing research that used ACE HPC resources, please include this acknowledgment:
 
-> *"Computational analysis was performed using the High Performance Computing cluster at the African Centre of Excellence in Bioinformatics and Data Intensive Sciences (ACE), Makerere University, Uganda."*
+> *"Computational analysis was performed using the High Performance Computing cluster at the African Centre of Excellence in Bioinformatics and Data Intensive Sciences (ACE), Makerere University, Uganda. URL: https://ace.ac.ug"*
 
 ---
 
